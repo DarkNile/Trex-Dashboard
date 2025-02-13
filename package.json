@@ -1,0 +1,49 @@
+{
+  "name": "trex",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.12.4",
+    "@radix-ui/react-dialog": "^1.1.4",
+    "@radix-ui/react-label": "^2.1.1",
+    "@radix-ui/react-select": "^2.1.6",
+    "@radix-ui/react-slot": "^1.1.1",
+    "axios": "^1.7.9",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cookies-next": "^5.0.2",
+    "graphql": "^16.10.0",
+    "lucide-react": "^0.469.0",
+    "next": "15.1.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.1",
+    "react-hot-toast": "^2.5.1",
+    "react-select": "^5.10.0",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/webpack": "^5.28.5",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.2",
+    "javascript-obfuscator": "^4.1.1",
+    "nextjs-obfuscator": "^3.1.0",
+    "postcss": "^8",
+    "shadcn-ui": "^0.9.4",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5",
+    "webpack": "^5.97.1",
+    "webpack-obfuscator": "^3.5.1"
+  }
+}
