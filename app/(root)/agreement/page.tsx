@@ -12,15 +12,19 @@ import UpdateAgreementModal from "@/components/Agreements/UpdateAgreementModal";
 
 const GET_AGREEMENTS = gql`
   query GetAgreements($page: Int!) {
-    AgreementList(filter: { deleted: false }, pageable: { page: $page }) {
+    AgreementList(pageable: { page: $page }, filter: { deleted: false }) {
       data {
         _id
         name
         note
-        reducedDutyRate
         createdAt
         updatedAt
-
+        countryIds {
+          _id
+          nameEn
+          nameAr
+          code
+        }
         createdBy {
           _id
           firstName
@@ -42,21 +46,12 @@ const GET_AGREEMENTS = gql`
   }
 `;
 
-// backend should fix this
-// countryId {
-//   _id
-//   nameEn
-//   nameAr
-//   code
-// }
-
 const DELETE_AGREEMENT = gql`
   mutation DeleteAgreement($id: String!) {
     deleteAgreement(id: $id) {
       _id
       name
       note
-      reducedDutyRate
       deletedAt
       createdAt
       updatedAt
@@ -82,17 +77,15 @@ type AgreementFromAPI = {
   _id: string;
   name: string;
   note: string;
-  reducedDutyRate: number;
+  countryIds: Country[];
   createdAt: string;
   updatedAt: string;
-  countryId: Country;
   createdBy: User;
   updatedBy: User;
   deletedBy?: User;
   deletedAt?: string;
 };
 
-// Extend the API type to include the required 'id' field for GenericTable
 type Agreement = AgreementFromAPI & { id: string };
 
 const Page = () => {
@@ -101,7 +94,6 @@ const Page = () => {
   const [selectedAgreement, setSelectedAgreement] = useState<Agreement | null>(
     null
   );
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data, loading, error, refetch } = useGenericQuery({
     query: GET_AGREEMENTS,
@@ -125,7 +117,6 @@ const Page = () => {
       refetch();
     },
     onError: (error) => {
-      console.log("Error deleting agreement:", error);
       toast.error(`Error deleting agreement: ${error.message}`, {
         duration: 5000,
       });
@@ -133,16 +124,17 @@ const Page = () => {
   });
 
   const handleDelete = (agreement: Agreement) => {
-    console.log("id", agreement._id);
     deleteAgreement({ id: agreement._id });
   };
 
   const handleUpdate = (agreement: Agreement) => {
     setSelectedAgreement(agreement);
-    setIsModalOpen(true);
   };
 
-  // Transform the API data to include the required 'id' field
+  const handleUpdateModalClose = () => {
+    setSelectedAgreement(null);
+  };
+
   const transformedData: Agreement[] = (data?.AgreementList?.data || []).map(
     (item: AgreementFromAPI) => ({
       ...item,
@@ -165,42 +157,33 @@ const Page = () => {
     return `${user.firstName} ${user.lastName}`;
   };
 
-  const columns: {
-    header: string;
-    key: keyof Agreement;
-    render?: (value: unknown, item: Agreement) => React.ReactNode;
-  }[] = [
+  const columns = [
     {
       header: "Agreement Name",
-      key: "name",
+      key: "name" as keyof Agreement,
     },
-    // {
-    //   header: "Country",
-    //   key: "countryId",
-    //   render: (_, item) => (
-    //     <div>
-    //       <div>{item.countryId.nameEn}</div>
-    //       <div className="text-sm text-gray-500">{item.countryId.nameAr}</div>
-    //       <div className="text-xs text-gray-400">
-    //         Code: {item.countryId.code}
-    //       </div>
-    //     </div>
-    //   ),
-    // },
     {
-      header: "Reduced Duty Rate",
-      key: "reducedDutyRate",
-      render: (value) => `${value}%`,
+      header: "Countries",
+      key: "countryIds" as keyof Agreement,
+      render: (_: unknown, item: Agreement) => (
+        <div>
+          {item.countryIds.map((country) => (
+            <div key={country._id} className="text-sm">
+              {country.nameEn}
+            </div>
+          ))}
+        </div>
+      ),
     },
     {
       header: "Note",
-      key: "note",
-      render: (value) => `${value}` || "N/A",
+      key: "note" as keyof Agreement,
+      render: (value: unknown) => `${value}` || "N/A",
     },
     {
       header: "Created By",
-      key: "createdBy",
-      render: (_, item) => (
+      key: "createdBy" as keyof Agreement,
+      render: (_: unknown, item: Agreement) => (
         <div>
           <div>{formatUser(item.createdBy)}</div>
           <div className="text-xs text-gray-400">
@@ -211,8 +194,8 @@ const Page = () => {
     },
     {
       header: "Updated By",
-      key: "updatedBy",
-      render: (_, item) => (
+      key: "updatedBy" as keyof Agreement,
+      render: (_: unknown, item: Agreement) => (
         <div>
           <div>{formatUser(item.updatedBy)}</div>
           <div className="text-xs text-gray-400">
@@ -238,10 +221,6 @@ const Page = () => {
     },
   ];
 
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-  };
-
   return (
     <div>
       <div className="flex justify-between items-center mb-3 px-8 pt-8">
@@ -249,21 +228,23 @@ const Page = () => {
           Trade Agreements
         </h1>
         <CreateAgreementModal onSuccess={refetch} />
-
-        {selectedAgreement && isModalOpen && (
-          <UpdateAgreementModal
-            agreementId={selectedAgreement._id}
-            initialData={{
-              name: selectedAgreement.name,
-              reducedDutyRate: selectedAgreement.reducedDutyRate,
-              countryId: selectedAgreement.countryId._id,
-              note: selectedAgreement.note,
-            }}
-            onSuccess={refetch}
-            onClose={() => setSelectedAgreement(null)}
-          />
-        )}
       </div>
+
+      {selectedAgreement && (
+        <UpdateAgreementModal
+          agreementId={selectedAgreement._id}
+          initialData={{
+            name: selectedAgreement.name,
+            countryIds: selectedAgreement.countryIds
+              .map((c) => c._id)
+              .join(","),
+            note: selectedAgreement.note,
+          }}
+          onSuccess={refetch}
+          onClose={handleUpdateModalClose}
+        />
+      )}
+
       <GenericTable
         data={transformedData}
         columns={columns}
@@ -278,7 +259,7 @@ const Page = () => {
           totalPages={data?.AgreementList?.totalPages || 1}
           totalItems={data?.AgreementList?.totalSize || 0}
           pageSize={data?.AgreementList?.pageSize}
-          onPageChange={handlePageChange}
+          onPageChange={(page) => setCurrentPage(page)}
         />
       )}
       <Toaster />

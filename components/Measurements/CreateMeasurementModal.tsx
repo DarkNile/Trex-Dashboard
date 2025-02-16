@@ -16,13 +16,14 @@ import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
 import { toast } from "react-hot-toast";
 
-// Interface definitions
+// Updated Interface definitions
 interface CreateMeasurementModalProps {
   onSuccess?: () => void;
 }
 
 interface FormData {
-  unitName: string;
+  unitNameEn: string;
+  unitNameAr: string;
   chapterIds: string[];
   subChapterIds: string[];
   productIds: string[];
@@ -53,13 +54,14 @@ interface Product {
 }
 
 interface CreateMeasurementInput {
-  unitName?: string;
+  unitNameEn?: string;
+  unitNameAr?: string;
   chapterIds?: string;
   subChapterIds?: string;
   productIds?: string;
 }
 
-// GraphQL queries
+// GraphQL queries remain the same
 const GET_CHAPTERS = gql`
   query GetChapters {
     getChapters(extraFilter: { deleted: false }) {
@@ -97,6 +99,7 @@ const GET_PRODUCTS = gql`
   }
 `;
 
+// Updated mutation to include both unit names
 const CREATE_MEASUREMENT = gql`
   mutation CreateMeasurement($createMeasurementInput: CreateMeasurementInput!) {
     createMeasurement(createMeasurementInput: $createMeasurementInput)
@@ -108,7 +111,8 @@ const CreateMeasurementModal: React.FC<CreateMeasurementModalProps> = ({
 }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
-    unitName: "",
+    unitNameEn: "",
+    unitNameAr: "",
     chapterIds: [],
     subChapterIds: [],
     productIds: [],
@@ -142,7 +146,8 @@ const CreateMeasurementModal: React.FC<CreateMeasurementModalProps> = ({
       toast.success("Measurement created successfully!");
       setOpen(false);
       setFormData({
-        unitName: "",
+        unitNameEn: "",
+        unitNameAr: "",
         chapterIds: [],
         subChapterIds: [],
         productIds: [],
@@ -157,9 +162,10 @@ const CreateMeasurementModal: React.FC<CreateMeasurementModalProps> = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Create base input with required unitName
+    // Create base input with required unit names
     const createMeasurementInput: Partial<CreateMeasurementInput> = {
-      unitName: formData.unitName,
+      unitNameEn: formData.unitNameEn,
+      unitNameAr: formData.unitNameAr,
     };
 
     // Only add arrays if they have items
@@ -205,7 +211,7 @@ const CreateMeasurementModal: React.FC<CreateMeasurementModalProps> = ({
       label: `${product.nameEn} - ${product.HSCode}`,
     })) || [];
 
-  // Custom styles with proper typing
+  // Custom styles with proper typing remain the same
   const selectStyles: StylesConfig<SelectOption, true> = {
     control: (base) => ({
       ...base,
@@ -246,17 +252,38 @@ const CreateMeasurementModal: React.FC<CreateMeasurementModalProps> = ({
           <DialogTitle>Create New Measurement</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="unitName">Unit Name</Label>
-            <Input
-              id="unitName"
-              value={formData.unitName}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setFormData((prev) => ({ ...prev, unitName: e.target.value }))
-              }
-              required
-              className="w-full"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="unitNameEn">Unit Name (English)</Label>
+              <Input
+                id="unitNameEn"
+                value={formData.unitNameEn}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    unitNameEn: e.target.value,
+                  }))
+                }
+                required
+                className="w-full"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="unitNameAr">Unit Name (Arabic)</Label>
+              <Input
+                id="unitNameAr"
+                value={formData.unitNameAr}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    unitNameAr: e.target.value,
+                  }))
+                }
+                required
+                className="w-full"
+                dir="rtl"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

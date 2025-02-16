@@ -22,7 +22,8 @@ interface SelectOption {
 interface AddUnitsToMeasurementProps {
   selectedMeasurement: {
     _id: string;
-    unitName: string;
+    unitNameAr: string;
+    unitNameEn: string;
   };
   onSuccess?: () => void;
   onClose: () => void;
@@ -53,8 +54,8 @@ const GET_SUBCHAPTERS = gql`
 `;
 
 const GET_PRODUCTS = gql`
-  query AllProducts {
-    allProducts {
+  query GetProducts($page: Int!) {
+    allProducts(deleted: { deleted: false }, pageable: { page: $page }) {
       data {
         _id
         HSCode
@@ -185,7 +186,9 @@ const AddUnitsToMeasurement: React.FC<AddUnitsToMeasurementProps> = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[1000px]">
         <DialogHeader>
-          <DialogTitle>Add Units to {selectedMeasurement.unitName}</DialogTitle>
+          <DialogTitle>
+            Add Units to {selectedMeasurement.unitNameEn}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

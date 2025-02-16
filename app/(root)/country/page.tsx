@@ -10,7 +10,7 @@ import Pagination from "@/components/UI/pagination/Pagination";
 
 const GET_COUNTRIES = gql`
   query CountryList($page: Int!) {
-    countryList(pageable: { page: $page }) {
+    countryList(pageable: { page: $page }, extraFilter: { deleted: false }) {
       totalSize
       totalPages
       pageSize

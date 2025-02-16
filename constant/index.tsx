@@ -2,20 +2,21 @@ import {
   Flag,
   Handshake,
   HomeIcon,
+  ShoppingBag,
   ShoppingCart,
   SquareArrowRightIcon,
   TableOfContents,
   Weight,
 } from "lucide-react";
 
-interface menuItem {
+interface MenuItem {
   name: string;
   id: number;
   url: string;
   icon: React.ReactNode;
 }
 
-export const menuItems: menuItem[] = [
+export const menuItems: MenuItem[] = [
   {
     name: "Home",
     id: 1,
@@ -57,5 +58,23 @@ export const menuItems: menuItem[] = [
     icon: <Flag />,
     id: 8,
     url: "/country",
+  },
+  {
+    name: "Shipping Port",
+    icon: <ShoppingBag />,
+    id: 9,
+    url: "/shipping-port",
+  },
+  {
+    name: "Schedule Tax",
+    icon: <Handshake />,
+    id: 10,
+    url: "/schedule-tax",
+  },
+  {
+    name: "Incoterms",
+    icon: <TableOfContents />,
+    id: 11,
+    url: "/incoterms",
   },
 ];

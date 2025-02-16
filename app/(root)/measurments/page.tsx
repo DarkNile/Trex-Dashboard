@@ -18,7 +18,8 @@ const GET_MEASUREMENTS = gql`
       pageNumber
       data {
         _id
-        unitName
+        unitNameEn
+        unitNameAr
         note
         createdAt
         updatedAt
@@ -54,7 +55,8 @@ type User = {
 
 type MeasurementFromAPI = {
   _id: string;
-  unitName: string;
+  unitNameEn: string;
+  unitNameAr: string;
   note: string;
   createdAt: string;
   updatedAt: string;
@@ -147,8 +149,12 @@ const Page = () => {
     render?: (value: unknown, item: Measurement) => React.ReactNode;
   }[] = [
     {
-      header: "Unit Name",
-      key: "unitName",
+      header: "Unit Name (Arabic)",
+      key: "unitNameAr",
+    },
+    {
+      header: "Unit Name (English)",
+      key: "unitNameEn",
     },
     {
       header: "Created By",

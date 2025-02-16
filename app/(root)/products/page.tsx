@@ -11,7 +11,7 @@ import UpdateProductModal from "@/components/product/UpdateProductModal";
 
 const GET_PRODUCTS = gql`
   query GetProducts($page: Int!) {
-    allProducts(pageable: { page: $page }) {
+    allProducts(deleted: { deleted: false }, pageable: { page: $page }) {
       totalSize
       totalPages
       pageSize
@@ -25,14 +25,9 @@ const GET_PRODUCTS = gql`
         defaultDutyRate
         serviceTax
         adVAT
-        measurementUnit {
-          _id
-          unitName
-          note
-        }
-        subChapterId {
-          _id
-        }
+        deletedAt
+        createdAt
+        updatedAt
       }
     }
   }
@@ -64,13 +59,14 @@ type ProductFromAPI = {
   note: string;
   defaultDutyRate: number;
   serviceTax: boolean;
-  adVAT: boolean;
+  adVAT: number;
   subChapterId: {
     _id: string;
   };
   measurementUnit: {
     _id: string;
-    unitName: string;
+    unitNameEn: string;
+    unitNameAr: string;
     note: string;
   };
 };
@@ -89,19 +85,21 @@ const Page = () => {
     nameEn: string;
     nameAr: string;
     defaultDutyRate: number;
-    agreementId: string;
+    agreements: string[];
     serviceTax: boolean;
-    adVAT: boolean;
+    adVAT: number;
     subChapterId: string;
+    type:string;
   }>({
     HSCode: "",
     nameEn: "",
     nameAr: "",
     defaultDutyRate: 0,
-    agreementId: "",
+    agreements: [],
     serviceTax: false,
-    adVAT: false,
+    adVAT: 0,
     subChapterId: "",
+    type: "regular"
   });
   const [open, setOpen] = useState(false);
 
@@ -141,10 +139,11 @@ const Page = () => {
       nameEn: product.nameEn,
       nameAr: product.nameAr,
       defaultDutyRate: product.defaultDutyRate,
-      agreementId: "", // You might need to adjust this based on your data structure
+      agreements: [], // You might need to adjust this based on your data structure
       serviceTax: product.serviceTax,
       adVAT: product.adVAT,
       subChapterId: product.subChapterId._id,
+      type: "regular"
     });
     setOpen(true);
   };
@@ -183,7 +182,7 @@ const Page = () => {
     {
       header: "Measurement Unit",
       key: "measurementUnit",
-      render: (_, item) => item.measurementUnit?.unitName || "N/A",
+      render: (_, item) => item.measurementUnit?.unitNameEn || "N/A",
     },
     {
       header: "Note",

@@ -21,7 +21,8 @@ const UPDATE_MEASUREMENT = gql`
 
 interface Measurement {
   _id: string;
-  unitName: string;
+  unitNameEn: string;
+  unitNameAr: string;
 }
 
 interface UpdateMeasurementModalProps {
@@ -35,10 +36,12 @@ const UpdateMeasurementModal: React.FC<UpdateMeasurementModalProps> = ({
   onSuccess,
   onClose,
 }) => {
-  const [unitName, setUnitName] = useState(selectedMeasurement.unitName);
+  const [unitNameEn, setUnitNameEn] = useState(selectedMeasurement.unitNameEn);
+  const [unitNameAr, setUnitNameAr] = useState(selectedMeasurement.unitNameAr);
 
   useEffect(() => {
-    setUnitName(selectedMeasurement.unitName);
+    setUnitNameEn(selectedMeasurement.unitNameEn);
+    setUnitNameAr(selectedMeasurement.unitNameAr);
   }, [selectedMeasurement]);
 
   const { execute: updateMeasurement, isLoading } = useGenericMutation({
@@ -58,7 +61,8 @@ const UpdateMeasurementModal: React.FC<UpdateMeasurementModalProps> = ({
     updateMeasurement({
       updateMeasurementInput: {
         id: selectedMeasurement._id,
-        unitName: unitName,
+        unitNameEn,
+        unitNameAr,
       },
     });
   };
@@ -71,13 +75,24 @@ const UpdateMeasurementModal: React.FC<UpdateMeasurementModalProps> = ({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="unitName">Unit Name</Label>
+            <Label htmlFor="unitNameEn">Unit Name (English)</Label>
             <Input
-              id="unitName"
-              name="unitName"
-              value={unitName}
-              onChange={(e) => setUnitName(e.target.value)}
+              id="unitNameEn"
+              name="unitNameEn"
+              value={unitNameEn}
+              onChange={(e) => setUnitNameEn(e.target.value)}
               required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="unitNameAr">Unit Name (Arabic)</Label>
+            <Input
+              id="unitNameAr"
+              name="unitNameAr"
+              value={unitNameAr}
+              onChange={(e) => setUnitNameAr(e.target.value)}
+              required
+              dir="rtl"
             />
           </div>
           <div className="flex justify-end gap-2">

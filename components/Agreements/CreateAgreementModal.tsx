@@ -9,7 +9,7 @@ import {
 } from "@/components/UI/dialog";
 import { Input } from "@/components/UI/input";
 import { Label } from "@/components/UI/label";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown, Plus, X } from "lucide-react";
 import { gql } from "@apollo/client";
 import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
@@ -23,10 +23,16 @@ const CREATE_AGREEMENT = gql`
 
 const GET_COUNTRIES = gql`
   query CountryList($page: Int!) {
-    countryList(pageable: { page: $page }) {
+    countryList(pageable: { page: $page }, extraFilter: { deleted: false }) {
+      totalSize
+      totalPages
+      pageSize
+      pageNumber
       data {
         _id
         nameEn
+        nameAr
+        code
       }
     }
   }
@@ -43,8 +49,7 @@ const CreateAgreementModal: React.FC<CreateAgreementModalProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
     name: "",
-    reducedDutyRate: 0,
-    countryId: "",
+    selectedCountries: [] as Array<{ _id: string; nameEn: string }>,
     note: "",
   });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -85,8 +90,7 @@ const CreateAgreementModal: React.FC<CreateAgreementModalProps> = ({
       setOpen(false);
       setFormData({
         name: "",
-        reducedDutyRate: 0,
-        countryId: "",
+        selectedCountries: [],
         note: "",
       });
       toast.success("Agreement created successfully! ✅");
@@ -102,8 +106,9 @@ const CreateAgreementModal: React.FC<CreateAgreementModalProps> = ({
     e.preventDefault();
     createAgreement({
       createAgreementDTO: {
-        ...formData,
-        reducedDutyRate: Number(formData.reducedDutyRate),
+        name: formData.name,
+        countryIds: formData.selectedCountries.map((c) => c._id).join(","),
+        note: formData.note,
       },
     });
   };
@@ -115,6 +120,23 @@ const CreateAgreementModal: React.FC<CreateAgreementModalProps> = ({
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleCountrySelect = (country: { _id: string; nameEn: string }) => {
+    setFormData((prev) => ({
+      ...prev,
+      selectedCountries: [...prev.selectedCountries, country],
+    }));
+    setIsDropdownOpen(false);
+  };
+
+  const handleRemoveCountry = (countryId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      selectedCountries: prev.selectedCountries.filter(
+        (c) => c._id !== countryId
+      ),
     }));
   };
 
@@ -152,19 +174,7 @@ const CreateAgreementModal: React.FC<CreateAgreementModalProps> = ({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="reducedDutyRate">Reduced Duty Rate</Label>
-            <Input
-              id="reducedDutyRate"
-              name="reducedDutyRate"
-              type="number"
-              value={formData.reducedDutyRate}
-              onChange={handleInputChange}
-              placeholder="Enter reduced duty rate"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="countryId">Select Country</Label>
+            <Label>Select Countries</Label>
             <div className="relative">
               <button
                 type="button"
@@ -172,10 +182,7 @@ const CreateAgreementModal: React.FC<CreateAgreementModalProps> = ({
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={loadingCountries}
               >
-                {formData.countryId
-                  ? loadedCountries.find((c) => c._id === formData.countryId)
-                      ?.nameEn
-                  : "Select a country"}
+                Select countries
                 <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
               </button>
 
@@ -184,21 +191,22 @@ const CreateAgreementModal: React.FC<CreateAgreementModalProps> = ({
                   className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto border border-input bg-background rounded-md shadow-lg"
                   onScroll={handleScroll}
                 >
-                  {loadedCountries.map((country) => (
-                    <div
-                      key={country._id}
-                      onClick={() => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          countryId: country._id,
-                        }));
-                        setIsDropdownOpen(false);
-                      }}
-                      className="px-3 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                    >
-                      {country.nameEn}
-                    </div>
-                  ))}
+                  {loadedCountries
+                    .filter(
+                      (country) =>
+                        !formData.selectedCountries.some(
+                          (sc) => sc._id === country._id
+                        )
+                    )
+                    .map((country) => (
+                      <div
+                        key={country._id}
+                        onClick={() => handleCountrySelect(country)}
+                        className="px-3 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                      >
+                        {country.nameEn}
+                      </div>
+                    ))}
                   {loadingCountries && (
                     <div className="px-3 py-2 text-muted-foreground">
                       Loading more countries...
@@ -211,6 +219,23 @@ const CreateAgreementModal: React.FC<CreateAgreementModalProps> = ({
                   )}
                 </div>
               )}
+            </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {formData.selectedCountries.map((country) => (
+                <div
+                  key={country._id}
+                  className="flex items-center gap-1 bg-accent px-2 py-1 rounded-md"
+                >
+                  <span>{country.nameEn}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveCountry(country._id)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
           <div className="space-y-2">
