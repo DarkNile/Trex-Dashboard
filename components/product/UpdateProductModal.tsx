@@ -26,16 +26,38 @@ interface SubChapter {
   nameEn: string;
 }
 
+interface AgreementData {
+  _id?: string;
+  reducedDutyRate: number;
+  agreementId: {
+    _id: string;
+    name: string;
+  };
+  applyGlobal: boolean;
+}
+
 interface ProductData {
   HSCode: string;
   nameEn: string;
   nameAr: string;
   defaultDutyRate: number;
-  agreements: string[];
+  agreements: AgreementData[];
   subChapterId: string;
   serviceTax: boolean;
   adVAT: number;
   type: string;
+}
+
+interface UpdateFormData extends ProductData {
+  agreements: Array<{
+    _id?: string;
+    agreementId: {
+      _id: string;
+      name: string;
+    };
+    reducedDutyRate: number;
+    applyGlobal: boolean;
+  }>;
 }
 
 interface UpdateProductModalProps {
@@ -45,29 +67,29 @@ interface UpdateProductModalProps {
   onClose: () => void;
 }
 
-// const UPDATE_PRODUCT = gql`
-//   mutation UpdateProduct($updateProductInput: UpdateProductInput!) {
-//     updateProduct(updateProductInput: $updateProductInput)
-//   }
-// `;
-
 const UPDATE_PRODUCT = gql`
   mutation UpdateProduct($updateProductInput: UpdateProductInput!) {
-    updateProduct(updateProductInput: $updateProductInput) {
-      _id
-      HSCode
-      nameEn
-      nameAr
-      defaultDutyRate
-      adVAT
-      agreements {
-        agreementId
-      }
-      serviceTax
-      type
-    }
+    updateProduct(updateProductInput: $updateProductInput)
   }
 `;
+
+// const UPDATE_PRODUCT = gql`
+//   mutation UpdateProduct($updateProductInput: UpdateProductInput!) {
+//     updateProduct(updateProductInput: $updateProductInput) {
+//       _id
+//       HSCode
+//       nameEn
+//       nameAr
+//       defaultDutyRate
+//       adVAT
+//       agreements {
+//         agreementId
+//       }
+//       serviceTax
+//       type
+//     }
+//   }
+// `;
 
 const GET_AGREEMENTS = gql`
   query GetAgreements {
@@ -101,7 +123,16 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
   onSuccess,
   onClose,
 }) => {
-  const [formData, setFormData] = useState(productData);
+  // const [formData, setFormData] = useState(productData);
+  const [formData, setFormData] = useState<UpdateFormData>({
+    ...productData,
+    agreements: productData.agreements.map(agreement => ({
+      _id: agreement._id,
+      agreementId: agreement.agreementId,
+      reducedDutyRate: agreement.reducedDutyRate,
+      applyGlobal: agreement.applyGlobal
+    }))
+  });
   const [changedFields, setChangedFields] = useState<Partial<ProductData>>({});
   const [isChapterDropdownOpen, setIsChapterDropdownOpen] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
@@ -238,13 +269,42 @@ const [isAgreementDialogOpen, setIsAgreementDialogOpen] = useState(false);
     setIsChapterDropdownOpen(false);
   };
 
-  const handleAgreementToggle = (agreements: string)=>{
-    setFormData(prev=>({
-      ...prev,
-      agreements: prev.agreements.includes(agreements)
-        ? prev.agreements.filter(id=> id !== agreements)
-        : [...prev.agreements, agreements]
-    }));
+  // const handleAgreementToggle = (agreements: string)=>{
+  //   setFormData(prev=>({
+  //     ...prev,
+  //     agreements: prev.agreements.includes(agreements)
+  //       ? prev.agreements.filter(id=> id !== agreements)
+  //       : [...prev.agreements, agreements]
+  //   }));
+  // };
+
+  const handleAgreementToggle = (agreement: { _id: string; name: string }) => {
+    setFormData(prev => {
+      const existingAgreementIndex = prev.agreements.findIndex(
+        a => a.agreementId._id === agreement._id
+      );
+  
+      if (existingAgreementIndex !== -1) {
+        const newAgreements = [...prev.agreements];
+        newAgreements.splice(existingAgreementIndex, 1);
+        return { ...prev, agreements: newAgreements };
+      }
+  
+      return {
+        ...prev,
+        agreements: [
+          ...prev.agreements,
+          {
+            agreementId: {
+              _id: agreement._id,
+              name: agreement.name
+            },
+            reducedDutyRate: 0,
+            applyGlobal: true
+          }
+        ]
+      };
+    });
   };
 
   const getAgreementName =(id: string)=>{
@@ -388,21 +448,50 @@ const [isAgreementDialogOpen, setIsAgreementDialogOpen] = useState(false);
                 </Button>
                 
                 <div className="flex flex-wrap gap-2">
-                  {formData.agreements.map((id) => (
-                    <div
-                      key={id}
-                      className="bg-gray-100 rounded-full px-3 py-1 flex items-center gap-2"
-                    >
-                      <span className="text-sm">{getAgreementName(id)}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleAgreementToggle(id)}
-                        className="text-gray-500 hover:text-gray-700"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                {formData.agreements.map((agreement) => (
+  <div
+    key={agreement.agreementId._id}
+    className="bg-gray-100 rounded-full px-3 py-1 flex items-center gap-2"
+  >
+    <span className="text-sm">{agreement.agreementId.name}</span>
+    <div className="flex items-center gap-2">
+      <Input
+        type="number"
+        value={agreement.reducedDutyRate}
+        onChange={(e) => {
+          const newAgreements = formData.agreements.map(a =>
+            a.agreementId._id === agreement.agreementId._id
+              ? { ...a, reducedDutyRate: Number(e.target.value) }
+              : a
+          );
+          setFormData(prev => ({ ...prev, agreements: newAgreements }));
+        }}
+        className="w-20 h-6 text-sm"
+        placeholder="Rate %"
+      />
+      <input
+        type="checkbox"
+        checked={agreement.applyGlobal}
+        onChange={(e) => {
+          const newAgreements = formData.agreements.map(a =>
+            a.agreementId._id === agreement.agreementId._id
+              ? { ...a, applyGlobal: e.target.checked }
+              : a
+          );
+          setFormData(prev => ({ ...prev, agreements: newAgreements }));
+        }}
+        className="w-4 h-4"
+      />
+    </div>
+    <button
+      type="button"
+      onClick={() => handleAgreementToggle(agreement.agreementId)}
+      className="text-gray-500 hover:text-gray-700"
+    >
+      <X className="w-4 h-4" />
+    </button>
+  </div>
+))}
                 </div>
               </div>
             </div>
@@ -444,8 +533,8 @@ const [isAgreementDialogOpen, setIsAgreementDialogOpen] = useState(false);
                       <input
                         type="checkbox"
                         id={`agreement-${agreement._id}`}
-                        checked={formData.agreements.includes(agreement._id)}
-                        onChange={() => handleAgreementToggle(agreement._id)}
+                        checked={formData.agreements.some(a => a.agreementId._id === agreement._id)}
+                        onChange={() => handleAgreementToggle(agreement)}
                         className="w-4 h-4"
                       />
                       <Label

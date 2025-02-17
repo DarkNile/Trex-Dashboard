@@ -27,13 +27,35 @@ interface SubChapter {
   nameEn: string;
 }
 
+interface AgreementInput {
+  agreementId: string;
+  reducedDutyRate: number;
+  applyGlobal: boolean;
+}
+
 interface FormData {
   HSCode: string;
   nameEn: string;
   nameAr: string;
   defaultDutyRate: number;
   subChapterId: string;
-  agreements: string[];
+  agreements: AgreementInput[];
+  serviceTax: boolean;
+  adVAT: number;
+  type: string;
+}
+
+interface CreateFormData {
+  HSCode: string;
+  nameEn: string;
+  nameAr: string;
+  defaultDutyRate: number;
+  subChapterId: string;
+  agreements: Array<{
+    agreementId: string;
+    reducedDutyRate: number;
+    applyGlobal: boolean;
+  }>;
   serviceTax: boolean;
   adVAT: number;
   type: string;
@@ -66,27 +88,9 @@ const GET_AGREEMENTS = gql`
   }
 `;
 
-// const CREATE_PRODUCT = gql`
-//   mutation CreateProduct($createProductInput: CreateProductInput!) {
-//     createProduct(createProductInput: $createProductInput)
-//   }
-// `;
-
 const CREATE_PRODUCT = gql`
   mutation CreateProduct($createProductInput: CreateProductInput!) {
-    createProduct(createProductInput: $createProductInput) {
-      _id
-      HSCode
-      nameEn
-      nameAr
-      defaultDutyRate
-      adVAT
-      agreements {
-        agreementId
-      }
-      serviceTax
-      type
-    }
+    createProduct(createProductInput: $createProductInput)
   }
 `;
 
@@ -102,7 +106,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
   const [isChapterDropdownOpen, setIsChapterDropdownOpen] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
   const [selectedName, setSelectedName] = useState("Select a Chapter");
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<CreateFormData>({
     HSCode: "",
     nameEn: "",
     nameAr: "",
@@ -111,7 +115,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     agreements: [],
     serviceTax: false,
     adVAT: 0,
-    type: "regular"
+    type: "regular",
   });
 
   const { data: chaptersData } = useGenericQuery({ query: GET_CHAPTERS });
@@ -130,7 +134,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
         agreements: [],
         serviceTax: false,
         adVAT: 0,
-        type: "regular"
+        type: "regular",
       });
       setSelectedName("Select a Chapter");
       toast.success("Product created successfully! ✅");
@@ -141,26 +145,34 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     },
   });
 
-
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Submitting form data:", {
-      ...formData,
+    
+    const agreementsString = formData.agreements
+    .map(agreement => (
+      `{agreementId:"${agreement.agreementId}",reducedDutyRate:${agreement.reducedDutyRate},applyGlobal:${agreement.applyGlobal}}`
+    ))
+    .join(',');
+  
+    const createProductInput = {
+      HSCode: formData.HSCode,
+      nameEn: formData.nameEn,
+      nameAr: formData.nameAr,
       defaultDutyRate: Number(formData.defaultDutyRate),
+      subChapterId: formData.subChapterId,
+      agreements: agreementsString, // Send as a string
+      serviceTax: formData.serviceTax,
       adVAT: Number(formData.adVAT),
+      type: "car"
+    };
+  
+    console.log('Mutation Input:', {
+      createProductInput: createProductInput
     });
-
-    const formattedAgreements = formData.agreements.map(agreementId => ({
-      agreementId: agreementId
-    }));
-
+  
+    // Send the mutation
     createProduct({
-      createProductInput: {
-        ...formData,
-        defaultDutyRate: Number(formData.defaultDutyRate),
-        adVAT: Number(formData.adVAT),
-        agreements: formattedAgreements
-      },
+      createProductInput: createProductInput
     });
   };
 
@@ -192,82 +204,139 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     setIsChapterDropdownOpen(false);
   };
 
-  const handleAgreementToggle = (agreements: string)=>{
-    setFormData(prev=>({
-      ...prev,
-      agreements: prev.agreements.includes(agreements)
-        ? prev.agreements.filter(id=> id !== agreements)
-        : [...prev.agreements, agreements]
-    }));
+  const handleAgreementToggle = (agreement: { _id: string; name: string }) => {
+    setFormData((prev) => {
+      const existingAgreement = prev.agreements.find(
+        (a) => a.agreementId === agreement._id
+      );
+
+      if (existingAgreement) {
+        return {
+          ...prev,
+          agreements: prev.agreements.filter(
+            (a) => a.agreementId !== agreement._id
+          ),
+        };
+      }
+
+      const newAgreement: AgreementInput = {
+        agreementId: agreement._id,
+        reducedDutyRate: 0, // Default value, can be modified
+        applyGlobal: true, // Default value, can be modified
+      };
+
+      return {
+        ...prev,
+        agreements: [...prev.agreements, newAgreement],
+      };
+    });
   };
 
-  const getAgreementName =(id: string)=>{
-    return agreementsData?.AgreementList?.data.find(
-      (agreement: {_id:string; name:string})=> agreement._id===id
-    )?.name || '';
+  const getAgreementName = (id: string) => {
+    return (
+      agreementsData?.AgreementList?.data.find(
+        (agreement: { _id: string; name: string }) => agreement._id === id
+      )?.name || ""
+    );
+  };
+
+  const AgreementRateInput: React.FC<{
+    agreement: AgreementInput;
+    onChange: (agreement: AgreementInput) => void;
+  }> = ({ agreement, onChange }) => {
+    return (
+      <div className="flex items-center gap-2 mt-2">
+        <Input
+          type="number"
+          value={agreement.reducedDutyRate}
+          onChange={(e) =>
+            onChange({
+              ...agreement,
+              reducedDutyRate: Number(e.target.value),
+            })
+          }
+          placeholder="Reduced Rate %"
+          className="w-32"
+        />
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={agreement.applyGlobal}
+            onChange={(e) =>
+              onChange({
+                ...agreement,
+                applyGlobal: e.target.checked,
+              })
+            }
+            className="w-4 h-4"
+          />
+          <span className="text-sm">Apply Global</span>
+        </label>
+      </div>
+    );
   };
 
   return (
     <>
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="mb-4">
-          <Plus className="w-4 h-4 mr-2" />
-          Add New Product
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create New Product</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Basic form fields */}
-          <div className="space-y-2">
-            <Label htmlFor="HSCode">HS Code</Label>
-            <Input
-              id="HSCode"
-              name="HSCode"
-              value={formData.HSCode}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button className="mb-4">
+            <Plus className="w-4 h-4 mr-2" />
+            Add New Product
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Product</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Basic form fields */}
+            {/* <div className="space-y-2">
+              <Label htmlFor="HSCode">HS Code</Label>
+              <Input
+                id="HSCode"
+                name="HSCode"
+                value={formData.HSCode}
+                onChange={handleInputChange}
+                required
+              />
+            </div> */}
 
-          <div className="space-y-2">
-            <Label htmlFor="nameEn">English Name</Label>
-            <Input
-              id="nameEn"
-              name="nameEn"
-              value={formData.nameEn}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="nameEn">English Name</Label>
+              <Input
+                id="nameEn"
+                name="nameEn"
+                value={formData.nameEn}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="nameAr">Arabic Name</Label>
-            <Input
-              id="nameAr"
-              name="nameAr"
-              value={formData.nameAr}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="nameAr">Arabic Name</Label>
+              <Input
+                id="nameAr"
+                name="nameAr"
+                value={formData.nameAr}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="defaultDutyRate">Default Duty Rate (%)</Label>
-            <Input
-              id="defaultDutyRate"
-              name="defaultDutyRate"
-              type="number"
-              value={formData.defaultDutyRate}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="defaultDutyRate">Default Duty Rate (%)</Label>
+              <Input
+                id="defaultDutyRate"
+                name="defaultDutyRate"
+                type="number"
+                value={formData.defaultDutyRate}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          <div className="space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="adVAT">VAT Rate (%)</Label>
               <Input
                 id="adVAT"
@@ -282,63 +351,68 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
               />
             </div>
 
-          {/* Custom Chapter Dropdown */}
-          <div className="space-y-2">
-            <Label>Chapter</Label>
-            <div className="relative">
-              <div
-                className="w-full border rounded-md p-2 flex justify-between items-center cursor-pointer bg-white"
-                onClick={() => setIsChapterDropdownOpen(!isChapterDropdownOpen)}
-              >
-                <span>{selectedName}</span>
-                <ChevronDown className="w-4 h-4" />
-              </div>
-
-              {isChapterDropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
-                  {chaptersData?.getChapters?.data.map((chapter: Chapter) => (
-                    <div key={chapter._id} className="border-b last:border-b-0">
-                      <div
-                        className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          if (expandedChapter === chapter._id) {
-                            handleChapterSelect(chapter);
-                          } else {
-                            setExpandedChapter(chapter._id);
-                          }
-                        }}
-                      >
-                        {chapter.subChapters?.length > 0 && (
-                          <span className="mr-2">
-                            {expandedChapter === chapter._id ? (
-                              <ChevronDown className="w-4 h-4" />
-                            ) : (
-                              <ChevronRight className="w-4 h-4" />
-                            )}
-                          </span>
-                        )}
-                        <span className="font-medium">{chapter.nameEn}</span>
-                      </div>
-
-                      {expandedChapter === chapter._id &&
-                        chapter.subChapters?.map((subChapter) => (
-                          <div
-                            key={subChapter._id}
-                            className="pl-8 pr-3 py-2 hover:bg-gray-100 cursor-pointer text-sm border-t"
-                            onClick={() => handleSubChapterSelect(subChapter)}
-                          >
-                            {subChapter.nameEn}
-                          </div>
-                        ))}
-                    </div>
-                  ))}
+            {/* Custom Chapter Dropdown */}
+            <div className="space-y-2">
+              <Label>Chapter</Label>
+              <div className="relative">
+                <div
+                  className="w-full border rounded-md p-2 flex justify-between items-center cursor-pointer bg-white"
+                  onClick={() =>
+                    setIsChapterDropdownOpen(!isChapterDropdownOpen)
+                  }
+                >
+                  <span>{selectedName}</span>
+                  <ChevronDown className="w-4 h-4" />
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* Agreements Dropdown */}
-             <div className="space-y-2">
+                {isChapterDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                    {chaptersData?.getChapters?.data.map((chapter: Chapter) => (
+                      <div
+                        key={chapter._id}
+                        className="border-b last:border-b-0"
+                      >
+                        <div
+                          className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            if (expandedChapter === chapter._id) {
+                              handleChapterSelect(chapter);
+                            } else {
+                              setExpandedChapter(chapter._id);
+                            }
+                          }}
+                        >
+                          {chapter.subChapters?.length > 0 && (
+                            <span className="mr-2">
+                              {expandedChapter === chapter._id ? (
+                                <ChevronDown className="w-4 h-4" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" />
+                              )}
+                            </span>
+                          )}
+                          <span className="font-medium">{chapter.nameEn}</span>
+                        </div>
+
+                        {expandedChapter === chapter._id &&
+                          chapter.subChapters?.map((subChapter) => (
+                            <div
+                              key={subChapter._id}
+                              className="pl-8 pr-3 py-2 hover:bg-gray-100 cursor-pointer text-sm border-t"
+                              onClick={() => handleSubChapterSelect(subChapter)}
+                            >
+                              {subChapter.nameEn}
+                            </div>
+                          ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Agreements Dropdown */}
+            <div className="space-y-2">
               <Label>Agreements</Label>
               <div className="space-y-2">
                 <Button
@@ -350,17 +424,62 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                   <span>Select Agreements</span>
                   <ChevronDown className="w-4 h-4 ml-2" />
                 </Button>
-                
+
                 <div className="flex flex-wrap gap-2">
-                  {formData.agreements.map((id) => (
+                  {formData.agreements.map((agreement) => (
                     <div
-                      key={id}
+                      key={agreement.agreementId}
                       className="bg-gray-100 rounded-full px-3 py-1 flex items-center gap-2"
                     >
-                      <span className="text-sm">{getAgreementName(id)}</span>
+                      <span className="text-sm">
+                        {getAgreementName(agreement.agreementId)}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={agreement.reducedDutyRate}
+                          onChange={(e) => {
+                            const newAgreements = formData.agreements.map((a) =>
+                              a.agreementId === agreement.agreementId
+                                ? {
+                                    ...a,
+                                    reducedDutyRate: Number(e.target.value),
+                                  }
+                                : a
+                            );
+                            setFormData((prev) => ({
+                              ...prev,
+                              agreements: newAgreements,
+                            }));
+                          }}
+                          className="w-20 h-6 text-sm"
+                          placeholder="Rate %"
+                        />
+                        <input
+                          type="checkbox"
+                          checked={agreement.applyGlobal}
+                          onChange={(e) => {
+                            const newAgreements = formData.agreements.map((a) =>
+                              a.agreementId === agreement.agreementId
+                                ? { ...a, applyGlobal: e.target.checked }
+                                : a
+                            );
+                            setFormData((prev) => ({
+                              ...prev,
+                              agreements: newAgreements,
+                            }));
+                          }}
+                          className="w-4 h-4"
+                        />
+                      </div>
                       <button
                         type="button"
-                        onClick={() => handleAgreementToggle(id)}
+                        onClick={() =>
+                          handleAgreementToggle({
+                            _id: agreement.agreementId,
+                            name: getAgreementName(agreement.agreementId),
+                          })
+                        }
                         className="text-gray-500 hover:text-gray-700"
                       >
                         <X className="w-4 h-4" />
@@ -371,34 +490,37 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
               </div>
             </div>
 
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="serviceTax"
-              name="serviceTax"
-              checked={formData.serviceTax}
-              onChange={handleInputChange}
-              className="w-4 h-4"
-            />
-            <Label htmlFor="serviceTax">Service Tax</Label>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating..." : "Create"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="serviceTax"
+                name="serviceTax"
+                checked={formData.serviceTax}
+                onChange={handleInputChange}
+                className="w-4 h-4"
+              />
+              <Label htmlFor="serviceTax">Service Tax</Label>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Creating..." : "Create"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-    <Dialog open={isAgreementDialogOpen} onOpenChange={setIsAgreementDialogOpen}>
+      <Dialog
+        open={isAgreementDialogOpen}
+        onOpenChange={setIsAgreementDialogOpen}
+      >
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Select Agreements</DialogTitle>
@@ -413,8 +535,10 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                   <input
                     type="checkbox"
                     id={`agreement-${agreement._id}`}
-                    checked={formData.agreements.includes(agreement._id)}
-                    onChange={() => handleAgreementToggle(agreement._id)}
+                    checked={formData.agreements.some(
+                      (a) => a.agreementId === agreement._id
+                    )}
+                    onChange={() => handleAgreementToggle(agreement)}
                     className="w-4 h-4"
                   />
                   <Label
