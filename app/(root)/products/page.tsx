@@ -149,7 +149,7 @@ interface ProductData {
   serviceTax: boolean;
   adVAT: number;
   subChapterId: string;
-  type: string;
+  type: "regural" | "car";
 }
 
 // Extend the API type to include the required 'id' field for GenericTable
@@ -191,7 +191,7 @@ const Page = () => {
     serviceTax: false,
     adVAT: 0,
     subChapterId: "",
-    type: "regular"
+    type: "regural"
   });
   const [open, setOpen] = useState(false);
 
@@ -245,7 +245,7 @@ const Page = () => {
       serviceTax: product.serviceTax,
       adVAT: product.adVAT,
       subChapterId: product.subChapterId._id,
-      type: "regular"
+      type: "regural"
     });
     setOpen(true);
   };
