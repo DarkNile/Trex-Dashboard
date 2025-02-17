@@ -104,20 +104,20 @@ const UPDATE_PRODUCT = gql`
 //   }
 // `;
 
-const GET_AGREEMENTS = gql`
-  query GetAgreements($page: Int!) {
-    AgreementList(pageable: { page: $page }, filter: { deleted: false }) {
-      data {
-        _id
-        name
-      }
-      totalSize
-      totalPages
-      pageNumber
-      pageSize
-    }
-  }
-`;
+// const GET_AGREEMENTS = gql`
+//   query GetAgreements($page: Int!) {
+//     AgreementList(pageable: { page: $page }, filter: { deleted: false }) {
+//       data {
+//         _id
+//         name
+//       }
+//       totalSize
+//       totalPages
+//       pageNumber
+//       pageSize
+//     }
+//   }
+// `;
 
 const GET_CHAPTERS = gql`
   query GetChapters {
@@ -143,32 +143,32 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
   onClose,
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
-  // const [formData, setFormData] = useState(productData);
-  const [formData, setFormData] = useState<UpdateFormData>({
-    ...productData,
-    agreements: productData.agreements.map((agreement) => ({
-      _id: agreement._id,
-      agreementId: agreement.agreementId,
-      reducedDutyRate: agreement.reducedDutyRate,
-      applyGlobal: agreement.applyGlobal,
-    })),
-  });
+  const [formData, setFormData] = useState(productData);
+  // const [formData, setFormData] = useState<UpdateFormData>({
+  //   ...productData,
+  //   agreements: productData.agreements.map((agreement) => ({
+  //     _id: agreement._id,
+  //     agreementId: agreement.agreementId,
+  //     reducedDutyRate: agreement.reducedDutyRate,
+  //     applyGlobal: agreement.applyGlobal,
+  //   })),
+  // });
   const [changedFields, setChangedFields] = useState<Partial<ProductData>>({});
   const [isChapterDropdownOpen, setIsChapterDropdownOpen] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
   const [selectedName, setSelectedName] = useState("Select a Chapter");
   const [isAgreementDialogOpen, setIsAgreementDialogOpen] = useState(false);
   // const { data: agreementsData } = useGenericQuery({ query: GET_AGREEMENTS });
-  const { data: agreementsData, loading: agreementsLoading } = useGenericQuery({
-    query: GET_AGREEMENTS,
-    variables: {
-      page: currentPage,
-    },
-    onError: (error) => {
-      console.error("Agreements loading error:", error);
-      toast.error(`Error loading agreements: ${error.message}`);
-    },
-  });
+  // const { data: agreementsData, loading: agreementsLoading } = useGenericQuery({
+  //   query: GET_AGREEMENTS,
+  //   variables: {
+  //     page: currentPage,
+  //   },
+  //   onError: (error) => {
+  //     console.error("Agreements loading error:", error);
+  //     toast.error(`Error loading agreements: ${error.message}`);
+  //   },
+  // });
   const { data: chaptersData } = useGenericQuery({ query: GET_CHAPTERS });
 
   useEffect(() => {
@@ -245,9 +245,9 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
       ...changedFields,
     };
 
-    if (changedFields.agreements) {
-      updateData.agreements = changedFields.agreements;
-    }
+    // if (changedFields.agreements) {
+    //   updateData.agreements = changedFields.agreements;
+    // }
 
     if ("defaultDutyRate" in changedFields) {
       updateData.defaultDutyRate = Number(changedFields.defaultDutyRate);
@@ -294,52 +294,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
     updateChangedFields("subChapterId", subChapter._id);
     setSelectedName(subChapter.nameAr);
     setIsChapterDropdownOpen(false);
-  };
-
-  // const handleAgreementToggle = (agreements: string)=>{
-  //   setFormData(prev=>({
-  //     ...prev,
-  //     agreements: prev.agreements.includes(agreements)
-  //       ? prev.agreements.filter(id=> id !== agreements)
-  //       : [...prev.agreements, agreements]
-  //   }));
-  // };
-
-  const handleAgreementToggle = (agreement: { _id: string; name: string }) => {
-    setFormData((prev) => {
-      const existingAgreementIndex = prev.agreements.findIndex(
-        (a) => a.agreementId._id === agreement._id
-      );
-
-      if (existingAgreementIndex !== -1) {
-        const newAgreements = [...prev.agreements];
-        newAgreements.splice(existingAgreementIndex, 1);
-        return { ...prev, agreements: newAgreements };
-      }
-
-      return {
-        ...prev,
-        agreements: [
-          ...prev.agreements,
-          {
-            agreementId: {
-              _id: agreement._id,
-              name: agreement.name,
-            },
-            reducedDutyRate: 0,
-            applyGlobal: true,
-          },
-        ],
-      };
-    });
-  };
-
-  const getAgreementName = (id: string) => {
-    return (
-      agreementsData?.AgreementList?.data.find(
-        (agreement: { _id: string; name: string }) => agreement._id === id
-      )?.name || ""
-    );
   };
 
   return (
@@ -470,95 +424,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
                 )}
               </div>
             </div>
-            <div className="space-y-2">
-                          <Label>Agreements</Label>
-                          <div className="space-y-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="w-full justify-between"
-                              onClick={() => setIsAgreementDialogOpen(true)}
-                            >
-                              <span>Select Agreements</span>
-                              <ChevronDown className="w-4 h-4 ml-2" />
-                            </Button>
-            
-                            {formData.agreements.length > 0 && (
-                              <div className="mt-4 space-y-4">
-                                {formData.agreements.map((agreement) => {
-                                  const agreementName = getAgreementName(
-                                    agreement.agreementId._id
-                                  );
-                                  return (
-                                    <div
-                                      key={agreement.agreementId._id}
-                                      className="space-y-2 p-4 border rounded-md"
-                                    >
-                                      <div className="font-medium">{agreementName}</div>
-                                      <div className="space-y-2">
-                                        <Label
-                                          htmlFor={`dutyRate-${agreement.agreementId}`}
-                                        >
-                                          Reduced Duty Rate (%)
-                                        </Label>
-                                        <Input
-                                          id={`dutyRate-${agreement.agreementId}`}
-                                          type="number"
-                                          value={agreement.reducedDutyRate}
-                                          onChange={(e) => {
-                                            const newAgreements = formData.agreements.map(
-                                              (a) =>
-                                                a.agreementId === agreement.agreementId
-                                                  ? {
-                                                      ...a,
-                                                      reducedDutyRate: Number(
-                                                        e.target.value
-                                                      ),
-                                                    }
-                                                  : a
-                                            );
-                                            setFormData((prev) => ({
-                                              ...prev,
-                                              agreements: newAgreements,
-                                            }));
-                                          }}
-                                          min="0"
-                                          max="100"
-                                          step="0.01"
-                                          required
-                                        />
-                                      </div>
-                                      <div className="flex items-center space-x-2">
-                                        <input
-                                          type="checkbox"
-                                          id={`global-${agreement.agreementId}`}
-                                          checked={agreement.applyGlobal}
-                                          onChange={(e) => {
-                                            const newAgreements = formData.agreements.map(
-                                              (a) =>
-                                                a.agreementId === agreement.agreementId
-                                                  ? { ...a, applyGlobal: e.target.checked }
-                                                  : a
-                                            );
-                                            setFormData((prev) => ({
-                                              ...prev,
-                                              agreements: newAgreements,
-                                            }));
-                                          }}
-                                          className="w-4 h-4"
-                                        />
-                                        <Label htmlFor={`global-${agreement.agreementId}`}>
-                                          Apply Globally
-                                        </Label>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -578,94 +443,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
               {isLoading ? "Updating..." : "Update Product"}
             </Button>
           </form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={isAgreementDialogOpen}
-        onOpenChange={setIsAgreementDialogOpen}
-      >
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>
-              Select Agreements
-              {!agreementsLoading &&
-                agreementsData?.AgreementList?.totalSize &&
-                ` (${agreementsData.AgreementList.totalSize} total)`}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
-            {agreementsLoading ? (
-              <div className="p-4 text-center">Loading agreements...</div>
-            ) : (
-              <>
-                {agreementsData?.AgreementList?.data.map(
-                  (agreement: { _id: string; name: string }) => (
-                    <div
-                      key={agreement._id}
-                      className="flex items-center space-x-2 py-2 border-b last:border-b-0"
-                    >
-                      <input
-                        type="checkbox"
-                        id={`agreement-${agreement._id}`}
-                        checked={formData.agreements.some(
-                          (a) => a.agreementId._id === agreement._id
-                        )}
-                        onChange={() => handleAgreementToggle(agreement)}
-                        className="w-4 h-4"
-                      />
-                      <Label
-                        htmlFor={`agreement-${agreement._id}`}
-                        className="flex-grow cursor-pointer"
-                      >
-                        {agreement.name}
-                      </Label>
-                    </div>
-                  )
-                )}
-
-                {agreementsData?.AgreementList?.totalPages > 1 && (
-                  <div className="flex justify-between items-center mt-4 border-t pt-4">
-                    <Button
-                      type="button"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(0, prev - 1))
-                      }
-                      disabled={currentPage === 0}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Previous
-                    </Button>
-                    <span>
-                      Page {agreementsData.AgreementList.pageNumber + 1} of{" "}
-                      {agreementsData.AgreementList.totalPages}
-                    </span>
-                    <Button
-                      type="button"
-                      onClick={() => setCurrentPage((prev) => prev + 1)}
-                      disabled={
-                        currentPage >=
-                        agreementsData.AgreementList.totalPages - 1
-                      }
-                      variant="outline"
-                      size="sm"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              onClick={() => setIsAgreementDialogOpen(false)}
-            >
-              Done
-            </Button>
-          </div>
         </DialogContent>
       </Dialog>
     </>
