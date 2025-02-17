@@ -9,9 +9,32 @@ import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import CreateProductModal from "@/components/product/CreateProductModal";
 import UpdateProductModal from "@/components/product/UpdateProductModal";
 
+// const GET_PRODUCTS = gql`
+//   query GetProducts($page: Int!) {
+//     allProducts(deleted: { deleted: false }, pageable: { page: $page }) {
+//       totalSize
+//       totalPages
+//       pageSize
+//       pageNumber
+//       data {
+//         _id
+//         HSCode
+//         nameEn
+//         nameAr
+//         note
+//         defaultDutyRate
+//         serviceTax
+//         adVAT
+//         deletedAt
+//         createdAt
+//         updatedAt
+//       }
+//     }
+//   }
+// `;
 const GET_PRODUCTS = gql`
-  query GetProducts($page: Int!) {
-    allProducts(deleted: { deleted: false }, pageable: { page: $page }) {
+  query AllProducts($page: Int!) {
+    allProducts(pageable: { page: $page }, deleted: { deleted: false }) {
       totalSize
       totalPages
       pageSize
@@ -28,6 +51,42 @@ const GET_PRODUCTS = gql`
         deletedAt
         createdAt
         updatedAt
+        agreements {
+          _id
+          reducedDutyRate
+          agreementId {
+            _id
+            name
+            note
+            deletedAt
+            createdAt
+            updatedAt
+            countryIds {
+              _id
+              nameEn
+              nameAr
+              code
+              deletedAt
+            }
+          }
+          applyGlobal
+        }
+        subChapterId {
+          _id
+          nameEn
+          nameAr
+          deletedAt
+          createdAt
+          updatedAt
+          chapterId {
+            _id
+            nameEn
+            nameAr
+            deletedAt
+            createdAt
+            updatedAt
+          }
+        }
       }
     }
   }
@@ -71,6 +130,28 @@ type ProductFromAPI = {
   };
 };
 
+interface AgreementData {
+  _id: string;
+  reducedDutyRate: number;
+  agreementId: {
+    _id: string;
+    name: string;
+  };
+  applyGlobal: boolean;
+}
+
+interface ProductData {
+  HSCode: string;
+  nameEn: string;
+  nameAr: string;
+  defaultDutyRate: number;
+  agreements: AgreementData[];
+  serviceTax: boolean;
+  adVAT: number;
+  subChapterId: string;
+  type: "regural" | "car";
+}
+
 // Extend the API type to include the required 'id' field for GenericTable
 type Product = ProductFromAPI & { id: string };
 
@@ -80,17 +161,28 @@ const Page = () => {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     null
   );
-  const [selectedProductData, setSelectedProductData] = useState<{
-    HSCode: string;
-    nameEn: string;
-    nameAr: string;
-    defaultDutyRate: number;
-    agreements: string[];
-    serviceTax: boolean;
-    adVAT: number;
-    subChapterId: string;
-    type:string;
-  }>({
+  // const [selectedProductData, setSelectedProductData] = useState<{
+  //   HSCode: string;
+  //   nameEn: string;
+  //   nameAr: string;
+  //   defaultDutyRate: number;
+  //   agreements: string[];
+  //   serviceTax: boolean;
+  //   adVAT: number;
+  //   subChapterId: string;
+  //   type:string;
+  // }>({
+  //   HSCode: "",
+  //   nameEn: "",
+  //   nameAr: "",
+  //   defaultDutyRate: 0,
+  //   agreements: [],
+  //   serviceTax: false,
+  //   adVAT: 0,
+  //   subChapterId: "",
+  //   type: "regular"
+  // });
+  const [selectedProductData, setSelectedProductData] = useState<ProductData>({
     HSCode: "",
     nameEn: "",
     nameAr: "",
@@ -99,7 +191,7 @@ const Page = () => {
     serviceTax: false,
     adVAT: 0,
     subChapterId: "",
-    type: "regular"
+    type: "regural"
   });
   const [open, setOpen] = useState(false);
 
@@ -139,11 +231,21 @@ const Page = () => {
       nameEn: product.nameEn,
       nameAr: product.nameAr,
       defaultDutyRate: product.defaultDutyRate,
-      agreements: [], // You might need to adjust this based on your data structure
+      agreements: [], 
+      // // You might need to adjust this based on your data structure
+      // agreements: product.agreements.map(agreement => ({
+      //   _id: agreement._id,
+      //   reducedDutyRate: agreement.reducedDutyRate,
+      //   agreementId: {
+      //     _id: agreement.agreementId._id,
+      //     name: agreement.agreementId.name
+      //   },
+      //   applyGlobal: agreement.applyGlobal
+      // })),
       serviceTax: product.serviceTax,
       adVAT: product.adVAT,
       subChapterId: product.subChapterId._id,
-      type: "regular"
+      type: "regural"
     });
     setOpen(true);
   };
