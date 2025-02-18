@@ -1,7 +1,7 @@
 "use client";
 import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
 import { gql } from "@apollo/client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pen, Trash } from "lucide-react";
 import GenericTable from "@/components/UI/Table/GenericTable";
 import Pagination from "@/components/UI/pagination/Pagination";
@@ -163,6 +163,13 @@ const Page = () => {
       });
     },
   });
+
+  useEffect(() => {
+    if (data?.allProducts?.data) {
+      console.log("All Products:", data.allProducts.data);
+    }
+  }, [data]);
+  
 
   const { execute: deleteProduct } = useGenericMutation({
     mutation: DELETE_PRODUCT,

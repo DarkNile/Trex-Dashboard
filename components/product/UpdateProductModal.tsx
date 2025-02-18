@@ -74,7 +74,9 @@ const UPDATE_PRODUCT = gql`
   }
 `;
 const ADD_AGREEMENTS = gql`
-  mutation AddNewAgreementToProduct($addNewAgreementInput: AddNewAgreementInput!) {
+  mutation AddNewAgreementToProduct(
+    $addNewAgreementInput: AddNewAgreementInput!
+  ) {
     addNewAgreementToProduct(addNewAgreementInput: $addNewAgreementInput) {
       _id
     }
@@ -168,6 +170,16 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
     }
   }, [chaptersData, formData.subChapterId]);
 
+  useEffect(() => {
+    const hasAgreementsChanged = JSON.stringify(formData.agreements) !== JSON.stringify(productData.agreements);
+    if (hasAgreementsChanged) {
+      setChangedFields(prev => ({ ...prev, agreements: formData.agreements }));
+    } else {
+      const { agreements, ...rest } = changedFields;
+      setChangedFields(rest);
+    }
+  }, [formData.agreements, productData.agreements]);
+
   const { execute: updateProduct, isLoading } = useGenericMutation({
     mutation: UPDATE_PRODUCT,
     onSuccess: () => {
@@ -179,11 +191,23 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
       toast.error(`Error updating product: ${error.message}`);
     },
   });
-  const { execute: updateAgreements, isLoading: isUpdatingAgreements } = useGenericMutation({
-    mutation: ADD_AGREEMENTS
-  });
+  const { execute: updateAgreements, isLoading: isUpdatingAgreements } =
+    useGenericMutation({
+      mutation: ADD_AGREEMENTS,
+    });
 
   const updateChangedFields = (name: keyof ProductData, value: any) => {
+    if (name === "agreements") {
+      const hasAgreementsChanged =
+        JSON.stringify(value) !== JSON.stringify(productData.agreements);
+      if (hasAgreementsChanged) {
+        setChangedFields((prev) => ({ ...prev, agreements: value }));
+      } else {
+        const { agreements, ...rest } = changedFields;
+        setChangedFields(rest);
+      }
+      return;
+    }
     if (Array.isArray(value)) {
       if (JSON.stringify(value) !== JSON.stringify(productData[name])) {
         setChangedFields((prev) => ({ ...prev, [name]: value }));
@@ -213,38 +237,53 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (Object.keys(changedFields).length === 0) {
-      toast("No changes detected");
-      return;
-    }
+  // const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  //   //the first submit
+  //   e.preventDefault();
+  //   if (Object.keys(changedFields).length === 0) {
+  //     toast("No changes detected");
+  //     return;
+  //   }
 
-    const updateData = {
-      id: productId,
-      ...changedFields,
-    };
+  //   const updateData = {
+  //     id: productId,
+  //     ...changedFields,
+  //   };
+  //   const agreementsString = formData.agreements
+  //     .map(
+  //       (agreement) =>
+  //         `{agreementId:'${agreement.agreementId._id}',reducedDutyRate:${agreement.reducedDutyRate},applyGlobal:${agreement.applyGlobal}}`
+  //     )
+  //     .join(",");
 
-    // if (changedFields.agreements) {
-    //   updateData.agreements = changedFields.agreements;
-    // }
+  //   updateAgreements({
+  //     addNewAgreementInput: {
+  //       id: productId,
+  //       agreements: agreementsString,
+  //     },
+  //   });
 
-    if ("defaultDutyRate" in changedFields) {
-      updateData.defaultDutyRate = Number(changedFields.defaultDutyRate);
-    }
+  //   // if (changedFields.agreements) {
+  //   //   updateData.agreements = changedFields.agreements;
+  //   // }
 
-    if ("adVAT" in changedFields) {
-      updateData.adVAT = Number(changedFields.adVAT);
-    }
+  //   if ("defaultDutyRate" in changedFields) {
+  //     updateData.defaultDutyRate = Number(changedFields.defaultDutyRate);
+  //   }
 
-    updateProduct({
-      updateProductInput: updateData,
-    });
-  };
+  //   if ("adVAT" in changedFields) {
+  //     updateData.adVAT = Number(changedFields.adVAT);
+  //   }
+
+  //   updateProduct({
+  //     updateProductInput: updateData,
+  //   });
+  // };
 
   // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  //the second submit
   //   e.preventDefault();
-    
+
   //   try {
   //     // First, update the product details
   //     const productUpdateData = {
@@ -268,16 +307,16 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
   //     });
 
   //     // Then, update the agreements
-  //     const agreementsString = formData.agreements
-  //       .map(agreement => `{agreementId:'${agreement.agreementId._id}',reducedDutyRate:${agreement.reducedDutyRate},applyGlobal:${agreement.applyGlobal}}`)
-  //       .join(',');
+  // const agreementsString = formData.agreements
+  //   .map(agreement => `{agreementId:'${agreement.agreementId._id}',reducedDutyRate:${agreement.reducedDutyRate},applyGlobal:${agreement.applyGlobal}}`)
+  //   .join(',');
 
-  //     await updateAgreements({
-  //       addNewAgreementInput: {
-  //         id: productId,
-  //         agreements: agreementsString
-  //       }
-  //     });
+  // await updateAgreements({
+  //   addNewAgreementInput: {
+  //     id: productId,
+  //     agreements: agreementsString
+  //   }
+  // });
 
   //     toast.success("Product and agreements updated successfully! ✅");
   //     onSuccess?.();
@@ -287,6 +326,55 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
   //   }
   // };
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (Object.keys(changedFields).length === 0) {
+      toast("No changes detected");
+      return;
+    }
+
+    const updateData = {
+      id: productId,
+      ...changedFields,
+    };
+
+    if (changedFields.agreements) {
+      // تحويل الاتفاقيات إلى النص المطلوب
+      const agreementsString = changedFields.agreements
+        .map(agreement => `{agreementId:'${agreement.agreementId._id}',reducedDutyRate:${agreement.reducedDutyRate},applyGlobal:${agreement.applyGlobal}}`)
+        .join(',');
+      
+      // إرسال طلبين منفصلين: واحد للمنتج وواحد للاتفاقيات
+      const productUpdateData = { ...updateData };
+      delete productUpdateData.agreements;
+
+      // تحديث المنتج أولاً
+      updateProduct({
+        updateProductInput: productUpdateData,
+      }).then(() => {
+        // ثم تحديث الاتفاقيات
+        updateAgreements({
+          addNewAgreementInput: {
+            id: productId,
+            agreements: agreementsString
+          }
+        }).then(() => {
+          toast.success("Product and agreements updated successfully! ✅");
+          onSuccess?.();
+          onClose();
+        }).catch((error) => {
+          toast.error(`Error updating agreements: ${error.message}`);
+        });
+      }).catch((error) => {
+        toast.error(`Error updating product: ${error.message}`);
+      });
+    } else {
+      // إذا لم تكن هناك تغييرات في الاتفاقيات، قم بتحديث المنتج فقط
+      updateProduct({
+        updateProductInput: updateData,
+      });
+    }
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -323,38 +411,75 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
   };
 
   const handleAgreementToggle = (agreement: { _id: string; name: string }) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const existingAgreementIndex = prev.agreements.findIndex(
-        a => a.agreementId._id === agreement._id
+        (a) => a.agreementId._id === agreement._id
       );
-  
+
+      let newAgreements;
+
       if (existingAgreementIndex !== -1) {
-        const newAgreements = [...prev.agreements];
+        newAgreements = [...prev.agreements];
         newAgreements.splice(existingAgreementIndex, 1);
-        return { ...prev, agreements: newAgreements };
-      }
-  
-      return {
-        ...prev,
-        agreements: [
+        // return { ...prev, agreements: newAgreements };
+      } else {
+        newAgreements = [
           ...prev.agreements,
           {
             agreementId: {
               _id: agreement._id,
-              name: agreement.name
+              name: agreement.name,
             },
             reducedDutyRate: 0,
-            applyGlobal: true
-          }
-        ]
-      };
+            applyGlobal: true,
+          },
+        ];
+      }
+
+      updateChangedFields("agreements", newAgreements);
+
+      // return {
+      //   ...prev,
+      //   agreements: [
+      //     ...prev.agreements,
+      //     {
+      //       agreementId: {
+      //         _id: agreement._id,
+      //         name: agreement.name
+      //       },
+      //       reducedDutyRate: 0,
+      //       applyGlobal: true
+      //     }
+      //   ]
+      // };
+
+      return { ...prev, agreements: newAgreements };
     });
   };
 
-  const getAgreementName =(id: string)=>{
-    return agreementsData?.AgreementList?.data.find(
-      (agreement: {_id:string; name:string})=> agreement._id===id
-    )?.name || '';
+  const handleAgreementChange = (
+    agreementId: string,
+    field: "reducedDutyRate" | "applyGlobal",
+    value: number | boolean
+  ) => {
+    setFormData((prev) => {
+      const newAgreements = prev.agreements.map((a) =>
+        a.agreementId._id === agreementId ? { ...a, [field]: value } : a
+      );
+
+      // Update changedFields whenever an agreement is modified
+      updateChangedFields("agreements", newAgreements);
+
+      return { ...prev, agreements: newAgreements };
+    });
+  };
+
+  const getAgreementName = (id: string) => {
+    return (
+      agreementsData?.AgreementList?.data.find(
+        (agreement: { _id: string; name: string }) => agreement._id === id
+      )?.name || ""
+    );
   };
 
   return (
@@ -486,93 +611,103 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
               </div>
             </div>
             <div className="space-y-2">
-                          <Label>Agreements</Label>
+              <Label>Agreements</Label>
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-between"
+                  onClick={() => setIsAgreementDialogOpen(true)}
+                >
+                  <span>Select Agreements</span>
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+
+                {formData.agreements.length > 0 && (
+                  <div className="mt-4 space-y-4">
+                    {formData.agreements.map((agreement) => {
+                      const agreementName = getAgreementName(
+                        agreement.agreementId._id
+                      );
+                      return (
+                        <div
+                          key={agreement.agreementId._id}
+                          className="space-y-2 p-4 border rounded-md"
+                        >
+                          <div className="font-medium">{agreementName}</div>
                           <div className="space-y-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="w-full justify-between"
-                              onClick={() => setIsAgreementDialogOpen(true)}
+                            <Label
+                              htmlFor={`dutyRate-${agreement.agreementId}`}
                             >
-                              <span>Select Agreements</span>
-                              <ChevronDown className="w-4 h-4 ml-2" />
-                            </Button>
-            
-                            {formData.agreements.length > 0 && (
-                              <div className="mt-4 space-y-4">
-                                {formData.agreements.map((agreement) => {
-                                  const agreementName = getAgreementName(
-                                    agreement.agreementId._id
-                                  );
-                                  return (
-                                    <div
-                                      key={agreement.agreementId._id}
-                                      className="space-y-2 p-4 border rounded-md"
-                                    >
-                                      <div className="font-medium">{agreementName}</div>
-                                      <div className="space-y-2">
-                                        <Label
-                                          htmlFor={`dutyRate-${agreement.agreementId}`}
-                                        >
-                                          Reduced Duty Rate (%)
-                                        </Label>
-                                        <Input
-                                          id={`dutyRate-${agreement.agreementId}`}
-                                          type="number"
-                                          value={agreement.reducedDutyRate}
-                                          onChange={(e) => {
-                                            const newAgreements = formData.agreements.map(
-                                              (a) =>
-                                                a.agreementId === agreement.agreementId
-                                                  ? {
-                                                      ...a,
-                                                      reducedDutyRate: Number(
-                                                        e.target.value
-                                                      ),
-                                                    }
-                                                  : a
-                                            );
-                                            setFormData((prev) => ({
-                                              ...prev,
-                                              agreements: newAgreements,
-                                            }));
-                                          }}
-                                          min="0"
-                                          max="100"
-                                          step="0.01"
-                                          required
-                                        />
-                                      </div>
-                                      <div className="flex items-center space-x-2">
-                                        <input
-                                          type="checkbox"
-                                          id={`global-${agreement.agreementId}`}
-                                          checked={agreement.applyGlobal}
-                                          onChange={(e) => {
-                                            const newAgreements = formData.agreements.map(
-                                              (a) =>
-                                                a.agreementId === agreement.agreementId
-                                                  ? { ...a, applyGlobal: e.target.checked }
-                                                  : a
-                                            );
-                                            setFormData((prev) => ({
-                                              ...prev,
-                                              agreements: newAgreements,
-                                            }));
-                                          }}
-                                          className="w-4 h-4"
-                                        />
-                                        <Label htmlFor={`global-${agreement.agreementId}`}>
-                                          Apply Globally
-                                        </Label>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
+                              Reduced Duty Rate (%)
+                            </Label>
+                            <Input
+                              id={`dutyRate-${agreement.agreementId}`}
+                              type="number"
+                              value={agreement.reducedDutyRate}
+                              // onChange={(e) => {
+                              //   const newAgreements = formData.agreements.map(
+                              //     (a) =>
+                              //       a.agreementId === agreement.agreementId
+                              //         ? {
+                              //             ...a,
+                              //             reducedDutyRate: Number(
+                              //               e.target.value
+                              //             ),
+                              //           }
+                              //         : a
+                              //   );
+                              //   setFormData((prev) => ({
+                              //     ...prev,
+                              //     agreements: newAgreements,
+                              //   }));
+                              // }}
+                              onChange={(e) => handleAgreementChange(
+                                agreement.agreementId._id,
+                                'reducedDutyRate',
+                                Number(e.target.value)
+                              )}
+                              min="0"
+                              max="100"
+                              step="0.01"
+                              required
+                            />
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`global-${agreement.agreementId}`}
+                              checked={agreement.applyGlobal}
+                              // onChange={(e) => {
+                              //   const newAgreements = formData.agreements.map(
+                              //     (a) =>
+                              //       a.agreementId === agreement.agreementId
+                              //         ? { ...a, applyGlobal: e.target.checked }
+                              //         : a
+                              //   );
+                              //   setFormData((prev) => ({
+                              //     ...prev,
+                              //     agreements: newAgreements,
+                              //   }));
+                              // }}
+                              onChange={(e) => handleAgreementChange(
+                                agreement.agreementId._id,
+                                'applyGlobal',
+                                e.target.checked
+                              )}
+                              className="w-4 h-4"
+                            />
+                            <Label htmlFor={`global-${agreement.agreementId}`}>
+                              Apply Globally
+                            </Label>
                           </div>
                         </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -594,48 +729,52 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
           </form>
         </DialogContent>
       </Dialog>
-      <Dialog open={isAgreementDialogOpen} onOpenChange={setIsAgreementDialogOpen}>
-            <DialogContent className="sm:max-w-[400px]">
-              <DialogHeader>
-                <DialogTitle>Select Agreements</DialogTitle>
-              </DialogHeader>
-              <div className="max-h-[60vh] overflow-y-auto">
-                {agreementsData?.AgreementList?.data.map(
-                  (agreement: { _id: string; name: string }) => (
-                    <div
-                      key={agreement._id}
-                      className="flex items-center space-x-2 py-2 border-b last:border-b-0"
-                    >
-                      <input
-                        type="checkbox"
-                        id={`agreement-${agreement._id}`}
-                        checked={formData.agreements.some(a => a.agreementId._id === agreement._id)}
-                        onChange={() => handleAgreementToggle(agreement)}
-                        className="w-4 h-4"
-                      />
-                      <Label
-                        htmlFor={`agreement-${agreement._id}`}
-                        className="flex-grow cursor-pointer"
-                      >
-                        {agreement.name}
-                      </Label>
-                    </div>
-                  )
-                )}
-              </div>
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  onClick={() => setIsAgreementDialogOpen(false)}
+      <Dialog
+        open={isAgreementDialogOpen}
+        onOpenChange={setIsAgreementDialogOpen}
+      >
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Select Agreements</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {agreementsData?.AgreementList?.data.map(
+              (agreement: { _id: string; name: string }) => (
+                <div
+                  key={agreement._id}
+                  className="flex items-center space-x-2 py-2 border-b last:border-b-0"
                 >
-                  Done
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+                  <input
+                    type="checkbox"
+                    id={`agreement-${agreement._id}`}
+                    checked={formData.agreements.some(
+                      (a) => a.agreementId._id === agreement._id
+                    )}
+                    onChange={() => handleAgreementToggle(agreement)}
+                    className="w-4 h-4"
+                  />
+                  <Label
+                    htmlFor={`agreement-${agreement._id}`}
+                    className="flex-grow cursor-pointer"
+                  >
+                    {agreement.name}
+                  </Label>
+                </div>
+              )
+            )}
+          </div>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              onClick={() => setIsAgreementDialogOpen(false)}
+            >
+              Done
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
 
 export default UpdateProductModal;
-
