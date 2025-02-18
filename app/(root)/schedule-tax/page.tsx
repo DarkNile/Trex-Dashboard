@@ -74,6 +74,7 @@ type ScheduleTax = ScheduleTaxFromAPI & {
   min: number;
   max: number;
   fee: number;
+  enhancementFee: number;
 };
 
 const Page = () => {
@@ -216,6 +217,7 @@ const Page = () => {
                 fee: tax.fee || 0,
                 max: tax.max || 0,
                 min: tax.min || 0,
+                enhancementFee: tax.enhancementFee || 0,
               }}
               refetch={refetch}
               onClose={() => handleCloseEdit(tax._id)}

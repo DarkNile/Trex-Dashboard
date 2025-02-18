@@ -6,8 +6,9 @@ import { Pen, Trash } from "lucide-react";
 import GenericTable from "@/components/UI/Table/GenericTable";
 import Pagination from "@/components/UI/pagination/Pagination";
 import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
-import CreateProductModal from "@/components/product/CreateProductModal";
-import UpdateProductModal from "@/components/product/UpdateProductModal";
+import CreateCarModal from "@/components/car/CreateCarModal";
+import UpdateCarModal from "@/components/car/UpdateCarModal";
+
 const GET_PRODUCTS = gql`
   query AllProducts($page: Int!) {
     allProducts(pageable: { page: $page }, deleted: { deleted: false }) {
@@ -68,11 +69,73 @@ const GET_PRODUCTS = gql`
   }
 `;
 
+// const GET_PRODUCTS = gql`
+//   query AllProducts($page: Int!) {
+//     allProducts(
+//       pageable: { page: $page }
+//       deleted: { deleted: false }
+//       filter: { type: "car" }
+//     ) {
+//       totalSize
+//       totalPages
+//       pageSize
+//       pageNumber
+//       data {
+//         _id
+//         nameEn
+//         nameAr
+//         note
+//         defaultDutyRate
+//         serviceTax
+//         adVAT
+//         deletedAt
+//         createdAt
+//         updatedAt
+//         agreements {
+//           _id
+//           reducedDutyRate
+//           agreementId {
+//             _id
+//             name
+//             note
+//             deletedAt
+//             createdAt
+//             updatedAt
+//             countryIds {
+//               _id
+//               nameEn
+//               nameAr
+//               code
+//               deletedAt
+//             }
+//           }
+//           applyGlobal
+//         }
+//         subChapterId {
+//           _id
+//           nameEn
+//           nameAr
+//           deletedAt
+//           createdAt
+//           updatedAt
+//           chapterId {
+//             _id
+//             nameEn
+//             nameAr
+//             deletedAt
+//             createdAt
+//             updatedAt
+//           }
+//         }
+//       }
+//     }
+//   }
+// `;
+
 const DELETE_PRODUCT = gql`
   mutation DeleteProduct($id: String!) {
     deleteProduct(id: $id) {
       _id
-      HSCode
       nameEn
       nameAr
       note
@@ -88,7 +151,7 @@ const DELETE_PRODUCT = gql`
 
 type ProductFromAPI = {
   _id: string;
-  HSCode: string;
+  // HSCode: string;
   nameEn: string;
   nameAr: string;
   note: string;
@@ -98,7 +161,7 @@ type ProductFromAPI = {
   subChapterId: {
     _id: string;
   };
-  measurementUnit: {
+  measurementUnit?: {
     _id: string;
     unitNameEn: string;
     unitNameAr: string;
@@ -117,7 +180,7 @@ interface AgreementData {
 }
 
 interface ProductData {
-  HSCode: string;
+  // HSCode: string;
   nameEn: string;
   nameAr: string;
   defaultDutyRate: number;
@@ -125,7 +188,7 @@ interface ProductData {
   serviceTax: boolean;
   adVAT: number;
   subChapterId: string;
-  type: "regural" | "car";
+  type: "car";
 }
 
 type Product = ProductFromAPI & { id: string };
@@ -136,8 +199,9 @@ const Page = () => {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     null
   );
+
   const [selectedProductData, setSelectedProductData] = useState<ProductData>({
-    HSCode: "",
+    // HSCode: "",
     nameEn: "",
     nameAr: "",
     defaultDutyRate: 0,
@@ -145,7 +209,7 @@ const Page = () => {
     serviceTax: false,
     adVAT: 0,
     subChapterId: "",
-    type: "regural"
+    type: "car"
   });
   const [open, setOpen] = useState(false);
 
@@ -181,22 +245,23 @@ const Page = () => {
   const handleUpdate = (product: Product) => {
     setSelectedProductId(product._id);
     setSelectedProductData({
-      HSCode: product.HSCode,
+      // HSCode: product.HSCode,
       nameEn: product.nameEn,
       nameAr: product.nameAr,
       defaultDutyRate: product.defaultDutyRate,
-      agreements: [], 
+      agreements: [],
       serviceTax: product.serviceTax,
       adVAT: product.adVAT,
       subChapterId: product.subChapterId._id,
-      type: "regural"
+      type: "car"
     });
     setOpen(true);
   };
+
   const transformedData: Product[] = (data?.allProducts?.data || []).map(
     (item: ProductFromAPI) => ({
       ...item,
-      id: item._id, 
+      id: item._id,
     })
   );
 
@@ -205,7 +270,7 @@ const Page = () => {
     key: keyof Product;
     render?: (value: unknown, item: Product) => React.ReactNode;
   }[] = [
-    { header: "HS Code", key: "HSCode" },
+    // { header: "HS Code", key: "HSCode" },
     { header: "Arabic Name", key: "nameAr" },
     { header: "English Name", key: "nameEn" },
     {
@@ -258,12 +323,12 @@ const Page = () => {
     <div className="">
       <div className="flex justify-between items-center mb-3 px-8 pt-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-          Products
+          Cars
         </h1>
-        <CreateProductModal onSuccess={refetch} />
+        <CreateCarModal onSuccess={refetch} />
 
         {selectedProductId && open && (
-          <UpdateProductModal
+          <UpdateCarModal
             productId={selectedProductId}
             productData={selectedProductData}
             onSuccess={() => {
