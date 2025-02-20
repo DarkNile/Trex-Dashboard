@@ -8,6 +8,7 @@ import Pagination from "@/components/UI/pagination/Pagination";
 import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import CreateProductModal from "@/components/product/CreateProductModal";
 import UpdateProductModal from "@/components/product/UpdateProductModal";
+import ArchiveProductModal from "@/components/product/ArchiveProductModal";
 const GET_PRODUCTS = gql`
   query AllProducts($page: Int!) {
     allProducts(pageable: { page: $page }, deleted: { deleted: false }) {
@@ -145,7 +146,7 @@ const Page = () => {
     serviceTax: false,
     adVAT: 0,
     subChapterId: "",
-    type: "regural"
+    type: "regural",
   });
   const [open, setOpen] = useState(false);
 
@@ -169,7 +170,6 @@ const Page = () => {
       console.log("All Products:", data.allProducts.data);
     }
   }, [data]);
-  
 
   const { execute: deleteProduct } = useGenericMutation({
     mutation: DELETE_PRODUCT,
@@ -192,18 +192,18 @@ const Page = () => {
       nameEn: product.nameEn,
       nameAr: product.nameAr,
       defaultDutyRate: product.defaultDutyRate,
-      agreements: [], 
+      agreements: [],
       serviceTax: product.serviceTax,
       adVAT: product.adVAT,
       subChapterId: product.subChapterId._id,
-      type: "regural"
+      type: "regural",
     });
     setOpen(true);
   };
   const transformedData: Product[] = (data?.allProducts?.data || []).map(
     (item: ProductFromAPI) => ({
       ...item,
-      id: item._id, 
+      id: item._id,
     })
   );
 
@@ -263,11 +263,14 @@ const Page = () => {
 
   return (
     <div className="">
-      <div className="flex justify-between items-center mb-3 px-8 pt-8">
+      <div className="flex justify-between items-start px-8 pt-8 mt-5">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
           Products
         </h1>
-        <CreateProductModal onSuccess={refetch} />
+        <div className="flex flex-col items-center">
+          <CreateProductModal onSuccess={refetch} />
+          <ArchiveProductModal />
+        </div>
 
         {selectedProductId && open && (
           <UpdateProductModal
