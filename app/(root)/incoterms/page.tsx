@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import CreateIncotermModal from "@/components/incoterms/CreateIncotermsModal";
 import UpdateIncotermModal from "@/components/incoterms/UpdateIncoTermsModal";
+import ArchiveIncotermsModal from "@/components/incoterms/ArchiveIncotermsModal";
 
 const GET_INCOTERMS = gql`
   query AllIncoterms($page: Int!) {
@@ -233,12 +234,15 @@ const Page = () => {
 
   return (
     <div className="">
-      <div className="flex justify-between items-center mb-3 px-8 pt-8">
+      <div className="flex justify-between items-start px-8 pt-8 mt-5">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
           Incoterms
         </h1>
-
-        <CreateIncotermModal onSuccess={refetch} />
+        <div className="flex flex-col items-center">
+          <CreateIncotermModal onSuccess={refetch} />
+          <ArchiveIncotermsModal />
+        </div>
+        
       </div>
 
       <UpdateIncotermModal

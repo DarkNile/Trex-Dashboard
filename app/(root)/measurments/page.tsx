@@ -9,6 +9,7 @@ import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import CreateMeasurementModal from "@/components/Measurements/CreateMeasurementModal";
 import UpdateMeasurementModal from "@/components/Measurements/UpdateMeasurementModal";
 import AddUnitsToMeasurement from "@/components/Measurements/AddUnitsToMeasurement";
+import ArchiveMeasurementsModal from "@/components/Measurements/ArchiveMeasurementsModal";
 const GET_MEASUREMENTS = gql`
   query GetMeasurements($page: Int!) {
     measurements(filter: { deleted: false }, pageable: { page: $page }) {
@@ -214,11 +215,15 @@ const Page = () => {
   return (
     <div className="">
       {" "}
-      <div className="flex justify-between items-center mb-3 px-8 pt-8">
+      <div className="flex justify-between items-start px-8 pt-8 mt-5">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
           Measurement Units
         </h1>
-        <CreateMeasurementModal onSuccess={refetch} />
+        <div className="flex flex-col items-center">
+          <CreateMeasurementModal onSuccess={refetch} />
+          <ArchiveMeasurementsModal />
+        </div>
+        
 
         {selectedMeasurement && isModalOpen && (
           <UpdateMeasurementModal

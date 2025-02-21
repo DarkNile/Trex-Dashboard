@@ -127,7 +127,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
   });
 
   const { data: chaptersData } = useGenericQuery({ query: GET_CHAPTERS });
-  // const { data: agreementsData } = useGenericQuery({ query: GET_AGREEMENTS });
   const { data: agreementsData, loading: agreementsLoading } = useGenericQuery({ 
     query: GET_AGREEMENTS,
     variables: {
@@ -259,41 +258,41 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     );
   };
 
-  const AgreementRateInput: React.FC<{
-    agreement: AgreementInput;
-    onChange: (agreement: AgreementInput) => void;
-  }> = ({ agreement, onChange }) => {
-    return (
-      <div className="flex items-center gap-2 mt-2">
-        <Input
-          type="number"
-          value={agreement.reducedDutyRate}
-          onChange={(e) =>
-            onChange({
-              ...agreement,
-              reducedDutyRate: Number(e.target.value),
-            })
-          }
-          placeholder="Reduced Rate %"
-          className="w-32"
-        />
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={agreement.applyGlobal}
-            onChange={(e) =>
-              onChange({
-                ...agreement,
-                applyGlobal: e.target.checked,
-              })
-            }
-            className="w-4 h-4"
-          />
-          <span className="text-sm">Apply Global</span>
-        </label>
-      </div>
-    );
-  };
+  // const AgreementRateInput: React.FC<{
+  //   agreement: AgreementInput;
+  //   onChange: (agreement: AgreementInput) => void;
+  // }> = ({ agreement, onChange }) => {
+  //   return (
+  //     <div className="flex items-center gap-2 mt-2">
+  //       <Input
+  //         type="number"
+  //         value={agreement.reducedDutyRate}
+  //         onChange={(e) =>
+  //           onChange({
+  //             ...agreement,
+  //             reducedDutyRate: Number(e.target.value),
+  //           })
+  //         }
+  //         placeholder="Reduced Rate %"
+  //         className="w-32"
+  //       />
+  //       <label className="flex items-center gap-2">
+  //         <input
+  //           type="checkbox"
+  //           checked={agreement.applyGlobal}
+  //           onChange={(e) =>
+  //             onChange({
+  //               ...agreement,
+  //               applyGlobal: e.target.checked,
+  //             })
+  //           }
+  //           className="w-4 h-4"
+  //         />
+  //         <span className="text-sm">Apply Global</span>
+  //       </label>
+  //     </div>
+  //   );
+  // };
 
   return (
     <>
@@ -367,6 +366,17 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 max="100"
                 step="0.1"
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="note">Note</Label>
+              <Input
+                id="note"
+                name="note"
+                type="text"
+                // value={formData.adVAT}
+                // onChange={handleInputChange}
               />
             </div>
 

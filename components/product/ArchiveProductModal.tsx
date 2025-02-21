@@ -75,24 +75,6 @@ const GET_PRODUCTS = gql`
   }
 `;
 
-// const DELETE_PRODUCT = gql`
-//   mutation DeleteProduct($id: String!) {
-//     deleteProduct(id: $id) {
-//       _id
-//       HSCode
-//       nameEn
-//       nameAr
-//       note
-//       defaultDutyRate
-//       serviceTax
-//       adVAT
-//       deletedAt
-//       createdAt
-//       updatedAt
-//     }
-//   }
-// `;
-
 const DELETE_PRODUCT = gql`
 mutation HardDeleteProduct($id: String!) {
     hardDeleteProduct(id: $id) {
@@ -175,89 +157,6 @@ type ProductFromAPI = {
   
   type Product = ProductFromAPI & { id: string };
 
-// Types
-// interface Chapter {
-//   _id: string;
-//   nameEn: string;
-//   nameAr: string;
-//   subChapters: SubChapter[];
-// }
-
-// interface SubChapter {
-//   _id: string;
-//   nameEn: string;
-//   nameAr: string;
-// }
-
-// interface AgreementInput {
-//   agreementId: string;
-//   reducedDutyRate: number;
-//   applyGlobal: boolean;
-// }
-
-// interface CreateFormData {
-//   HSCode: string;
-//   nameEn: string;
-//   nameAr: string;
-//   defaultDutyRate: number;
-//   subChapterId: string;
-//   agreements: Array<{
-//     agreementId: string;
-//     reducedDutyRate: number;
-//     applyGlobal: boolean;
-//   }>;
-//   serviceTax: boolean;
-//   adVAT: number;
-//   type: "regural" | "car";
-// }
-
-// // GraphQL Queries
-// const GET_CHAPTERS = gql`
-//   query GetChapters {
-//     getChapters(extraFilter: { deleted: false }, pageable: { page: 1 }) {
-//       data {
-//         _id
-//         nameEn
-//         nameAr
-//         subChapters {
-//           _id
-//           nameEn
-//           nameAr
-//         }
-//       }
-//     }
-//   }
-// `;
-
-
-// const GET_AGREEMENTS = gql`
-//   query GetAgreements($page: Int!) {
-//     AgreementList(pageable: { page: $page }, filter: { deleted: true }) {
-//       data {
-//         _id
-//         name
-//       }
-//       totalSize
-//       totalPages
-//       pageNumber
-//       pageSize
-//     }
-//   }
-// `;
-
-// const CREATE_PRODUCT = gql`
-//   mutation CreateProduct($createProductInput: CreateProductInput!) {
-//     createProduct(createProductInput: $createProductInput)
-//   }
-// `;
-
-// interface CreateProductModalProps {
-//   onSuccess?: () => void;
-// }
-
-// const ArchiveProductModal: React.FC<CreateProductModalProps> = ({
-//   onSuccess,
-// }) => {
     const ArchiveProductModal = () => {
 
 
@@ -326,22 +225,6 @@ type ProductFromAPI = {
   };
 
 
-
-//   const handleUpdate = (product: Product) => {
-//     setSelectedProductId(product._id);
-//     setSelectedProductData({
-//       HSCode: product.HSCode,
-//       nameEn: product.nameEn,
-//       nameAr: product.nameAr,
-//       defaultDutyRate: product.defaultDutyRate,
-//       agreements: [],
-//       serviceTax: product.serviceTax,
-//       adVAT: product.adVAT,
-//       subChapterId: product.subChapterId._id,
-//       type: "regural",
-//     });
-//     setOpen(true);
-//   };
   const transformedData: Product[] = (data?.allProducts?.data || []).map(
     (item: ProductFromAPI) => ({
       ...item,
@@ -422,7 +305,9 @@ type ProductFromAPI = {
         data={transformedData}
         columns={columns}
         actions={actions}
-        subtitle={`Total Products: ${data?.allProducts?.totalSize || 0}`}
+        subtitle={`Total Products: ${
+            data?.allProducts?.totalSize || transformedData.length
+          }`}
         isLoading={loading}
         error={error || null}
       />
@@ -436,13 +321,6 @@ type ProductFromAPI = {
         />
       )}
             <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
-                Cancel
-              </Button>
               <Button
                 type="button"
                 variant="outline"

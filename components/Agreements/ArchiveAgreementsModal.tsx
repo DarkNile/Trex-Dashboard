@@ -1,19 +1,23 @@
-"use client";
-import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
+import React, { JSX, useState } from "react";
+import { ArchiveRestore, Pen, Trash } from "lucide-react";
 import { gql } from "@apollo/client";
-import React, { useState } from "react";
-import { Pen, Trash } from "lucide-react";
-import GenericTable from "@/components/UI/Table/GenericTable";
-import Pagination from "@/components/UI/pagination/Pagination";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../UI/dialog";
+import { Button } from "../UI/button";
+import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
 import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
-import CreateAgreementModal from "@/components/Agreements/CreateAgreementModal";
-import toast, { Toaster } from "react-hot-toast";
-import UpdateAgreementModal from "@/components/Agreements/UpdateAgreementModal";
-import ArchiveAgreementsModal from "@/components/Agreements/ArchiveAgreementsModal";
+import GenericTable from "../UI/Table/GenericTable";
+import Pagination from "../UI/pagination/Pagination";
+import toast from "react-hot-toast";
 
 const GET_AGREEMENTS = gql`
   query GetAgreements($page: Int!) {
-    AgreementList(pageable: { page: $page }, filter: { deleted: false }) {
+    AgreementList(pageable: { page: $page }, filter: { deleted: true }) {
       data {
         _id
         name
@@ -46,10 +50,9 @@ const GET_AGREEMENTS = gql`
     }
   }
 `;
-
-const DELETE_AGREEMENT = gql`
+const RESTORE_AGREEMENTS = gql`
   mutation DeleteAgreement($id: String!) {
-    deleteAgreement(id: $id) {
+    restoreAgreement(id: $id) {
       _id
       name
       note
@@ -59,6 +62,21 @@ const DELETE_AGREEMENT = gql`
     }
   }
 `;
+
+const DELETE_AGREEMENTS = gql`
+  mutation HardDeleteAgreement($id: String!) {
+    hardDeleteAgreement(id: $id) {
+      _id
+      name
+      note
+      deletedAt
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+
 
 type User = {
   _id: string;
@@ -89,12 +107,13 @@ type AgreementFromAPI = {
 
 type Agreement = AgreementFromAPI & { id: string };
 
-const Page = () => {
+const ArchiveAgreementsModal = () => {
+  const [open, setOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const pageSize = 10;
   const [selectedAgreement, setSelectedAgreement] = useState<Agreement | null>(
     null
   );
+  const pageSize = 10;
 
   const { data, loading, error, refetch } = useGenericQuery({
     query: GET_AGREEMENTS,
@@ -112,7 +131,7 @@ const Page = () => {
   });
 
   const { execute: deleteAgreement } = useGenericMutation({
-    mutation: DELETE_AGREEMENT,
+    mutation: DELETE_AGREEMENTS,
     onSuccess: () => {
       toast.success("Agreement deleted successfully! ✅");
       refetch();
@@ -128,12 +147,18 @@ const Page = () => {
     deleteAgreement({ id: agreement._id });
   };
 
-  const handleUpdate = (agreement: Agreement) => {
-    setSelectedAgreement(agreement);
-  };
+  const { execute: restoreAgreement } = useGenericMutation({
+    mutation: RESTORE_AGREEMENTS,
+    onSuccess: () => {
+      refetch();
+    },
+    onError: (error) => {
+      console.log("Error restoring Agreement:", error);
+    },
+  });
 
-  const handleUpdateModalClose = () => {
-    setSelectedAgreement(null);
+  const handleRestore = (agreement: Agreement) => {
+    restoreAgreement({ id: agreement._id });
   };
 
   const transformedData: Agreement[] = (data?.AgreementList?.data || []).map(
@@ -215,52 +240,40 @@ const Page = () => {
       className: "text-red-500",
     },
     {
-      label: "Edit",
-      onClick: handleUpdate,
-      icon: <Pen className="w-4 h-4" />,
+      label: "Restore",
+      onClick: handleRestore,
       className: "text-blue-500",
+      icon: <ArchiveRestore className="w-4 h-4" />,
     },
   ];
 
+  
+
   return (
-    <div>
-      <div className="flex justify-between items-start px-8 pt-8 mt-5">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-          Trade Agreements
-        </h1>
-        <div className="flex flex-col items-center">
-        <CreateAgreementModal onSuccess={refetch} />
-        <ArchiveAgreementsModal />
-        </div>
-      </div>
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button className="mb-4 bg-red-950">
+            <Trash className="w-4 h-4 mr-2" />
+            Deleted Agreements
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Deleted Agreements</DialogTitle>
+          </DialogHeader>
 
-      {selectedAgreement && (
-        <UpdateAgreementModal
-          agreementId={selectedAgreement._id}
-          initialData={{
-            name: selectedAgreement.name,
-            countryIds: selectedAgreement.countryIds
-              .map((c) => c._id)
-              .join(","),
-            note: selectedAgreement.note,
-          }}
-          onSuccess={refetch}
-          onClose={handleUpdateModalClose}
-        />
-      )}
-
-      <GenericTable
-        data={transformedData}
-        columns={columns}
-        actions={actions}
-        subtitle={`Total Agreements: ${
-          data?.AgreementList?.totalSize || transformedData.length
-        }`}
-        isLoading={loading}
-        error={error || null}
-      />
-
-      {!loading && !error && (
+          <GenericTable
+            data={transformedData}
+            columns={columns}
+            actions={actions}
+            subtitle={`Total Agreements: ${
+              data?.AgreementList?.totalSize || transformedData.length
+            }`}
+            isLoading={loading}
+            error={error || null}
+          />
+          {!loading && !error && (
         <Pagination
           currentPage={data?.AgreementList?.pageNumber}
           totalPages={data?.AgreementList?.totalPages || 1}
@@ -269,9 +282,21 @@ const Page = () => {
           onPageChange={(page) => setCurrentPage(page)}
         />
       )}
-      <Toaster />
-    </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="bg-red-950 text-white"
+              onClick={() => setOpen(false)}
+            >
+              Done
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
-export default Page;
+export default ArchiveAgreementsModal;

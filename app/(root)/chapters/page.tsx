@@ -10,6 +10,7 @@ import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import toast from "react-hot-toast";
 import UpdateChapterModal from "@/components/chapter/UpdateChapterModal";
 import { useRouter } from "next/navigation";
+import ArchiveChapterModal from "@/components/chapter/ArchiveChapterModal";
 
 const GET_CHAPTERS = gql`
   query GetChapters($page: Int!) {
@@ -151,11 +152,15 @@ const Page = () => {
 
   return (
     <div className="">
-      <div className="flex justify-between items-center mb-3 px-8 pt-8">
+      <div className="flex justify-between items-start px-8 pt-8 mt-5">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
           Chapters
         </h1>
+        <div className="flex flex-col items-center">
         <CreateChapterModal onSuccess={refetch} />
+        <ArchiveChapterModal />
+        </div>
+        
 
         {selectedChapter && openUpdateModal && (
           <UpdateChapterModal

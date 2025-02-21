@@ -2,13 +2,15 @@
 import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
 import { gql } from "@apollo/client";
 import React, { useEffect, useState } from "react";
-import { Pen, Trash } from "lucide-react";
+import { EyeIcon, Pen, Trash } from "lucide-react";
 import GenericTable from "@/components/UI/Table/GenericTable";
 import Pagination from "@/components/UI/pagination/Pagination";
 import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import CreateProductModal from "@/components/product/CreateProductModal";
 import UpdateProductModal from "@/components/product/UpdateProductModal";
 import ArchiveProductModal from "@/components/product/ArchiveProductModal";
+import { useRouter } from "next/navigation";
+
 const GET_PRODUCTS = gql`
   query AllProducts($page: Int!) {
     allProducts(pageable: { page: $page }, deleted: { deleted: false }) {
@@ -132,6 +134,7 @@ interface ProductData {
 type Product = ProductFromAPI & { id: string };
 
 const Page = () => {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 10;
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
@@ -255,6 +258,14 @@ const Page = () => {
       className: "text-blue-500",
       icon: <Pen className="w-4 h-4" />,
     },
+    {
+      label: "View Product",
+      onClick: (item: Product) => {
+        router.push(`products/${item._id}`);
+      },
+      icon: <EyeIcon className="w-4 h-4" />,
+      className: "text-green-500",
+    },
   ];
 
   const handlePageChange = (newPage: number) => {
@@ -289,7 +300,9 @@ const Page = () => {
         data={transformedData}
         columns={columns}
         actions={actions}
-        subtitle={`Total Products: ${data?.allProducts?.totalSize || 0}`}
+        subtitle={`Total Products: ${
+          data?.allProducts?.totalSize || transformedData.length
+        }`}
         isLoading={loading}
         error={error || null}
       />
