@@ -1,6 +1,6 @@
 import React, { JSX, useState } from "react";
 import { ArchiveRestore, Pen, Trash } from "lucide-react";
-import { gql } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
 import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import GenericTable from "../UI/Table/GenericTable";
 import Pagination from "../UI/pagination/Pagination";
+import toast from "react-hot-toast";
 
 const GET_REGISTRATIONS = gql`
   query GetAllPartnerRequests($page: Int!) {
@@ -39,68 +40,55 @@ const GET_REGISTRATIONS = gql`
 `;
 
 const DELETE_PARTNERS = gql`
-  mutation DeleteRegistration($id: ID!) {
-    deleteRegistration(id: $id)
-  }
+  mutation HardDeletePartner($id: ID!) {
+  hardDeletePartner(id: $id)
+}
 `;
+
 
 const RESTORE_PARTNERS = gql`
   mutation RestorePartner($id: ID!) {
     restorePartner(id: $id) {
-      _id
-      firstName
-      lastName
-      email
-      companyName
-      zipCode
-      country
-      address
-      phone
-      type
-      accountActivated
-      deletedAt
-      enabledAt
-      lockedAt
-      createdAt
-      updatedAt
-      trcSerial
-      trcIssuedAt
-      trcExpiresAt
-      trcFile
-      crcSerial
-      crcIssuedAt
-      crcExpiresAt
-      crcFile
-      cccSerial
-      cccIssuedAt
-      cccExpiresAt
-      cccFile
-      bplSerial
-      bplIssuedAt
-      bplExpiresAt
-      bplFile
-      isApproved
-      approvedAt
-      isDeleted
-      deletedBy {
-        _id
-        firstName
-      }
-      updatedBy {
         _id
         firstName
         lastName
         email
-      }
-      approvedBy {
-        _id
-        firstName
-        lastName
-        email
-      }
+        companyName
+        zipCode
+        country
+        address
+        phone
+        type
+        accountActivated
+        deletedAt
+        enabledAt
+        lockedAt
+        isDeleted
+        createdAt
+        updatedAt
+        trcSerial
+        trcIssuedAt
+        trcExpiresAt
+        trcFile
+        crcSerial
+        crcIssuedAt
+        crcExpiresAt
+        crcFile
+        cccSerial
+        cccIssuedAt
+        cccExpiresAt
+        cccFile
+        bplSerial
+        bplIssuedAt
+        bplExpiresAt
+        bplFile
+        isApproved
+        approvedAt
     }
-  }
+}
 `;
+
+
 
 type Address = {
   address: string;
@@ -170,33 +158,52 @@ const ArchivePartnersModal = () => {
     });
 
 
-  const { execute: deletePartners } = useGenericMutation({
-    mutation: DELETE_PARTNERS,
-    onSuccess: () => {
-      refetch();
-    },
-    onError: (error) => {
-      console.log("Error deleting product:", error);
-    },
-  });
+  const [deletePartners] = useMutation(DELETE_PARTNERS, {
+      onCompleted: () => {
+        refetch();
+      },
+    });
 
-  const handleDelete = (partner: Registration) => {
-    deletePartners({ id: partner._id });
-  };
 
-  const { execute: restorePartners } = useGenericMutation({
-    mutation: RESTORE_PARTNERS,
-    onSuccess: () => {
-      refetch();
-    },
-    onError: (error) => {
-      console.log("Error restoring product:", error);
-    },
-  });
+    const handleDelete = async (registration: Registration) => {
+      if (window.confirm("Are you sure you want to delete this registration?")) {
+        try {
+          await deletePartners({
+            variables: { id: registration.id },
+          });
+        } catch (error) {
+          console.log("Error deleting registration:", error);
+          toast.error(`Error deleting product: ${error}`, {
+            duration: 5000,
+            icon: "❌",
+          });
+        }
+      }
+    };
 
-  const handleRestore = (partner: Registration) => {
-    restorePartners({ id: partner._id });
-  };
+
+    const [restorePartners] = useMutation(RESTORE_PARTNERS, {
+      onCompleted: () => {
+        refetch();
+      },
+    });
+
+
+    const handleRestore = async (registration: Registration) => {
+      if (window.confirm("Are you sure you want to restore this registration?")) {
+        try {
+          await restorePartners({
+            variables: { id: registration.id },
+          });
+        } catch (error) {
+          console.log("Error restoring registration:", error);
+          toast.error(`Error restoring product: ${error}`, {
+            duration: 5000,
+            icon: "❌",
+          });
+        }
+      }
+    };
 
   const transformedData: Registration[] = (
     data?.getAllPartnerRequests?.data || []
