@@ -11,6 +11,7 @@ import CreateSubChapterModal from "@/components/chapter/CreateSubChapterModal";
 import UpdateChapterModal from "@/components/chapter/UpdateChapterModal";
 import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import toast from "react-hot-toast";
+// import ArchiveSubChapterModal from "@/components/chapter/ArchiveSubChapterModal";
 
 // Types remain unchanged...
 interface SubChapter {
@@ -104,7 +105,7 @@ export default function ChapterPage({
     },
     onError: (error) => {
       console.log("Error deleting chapter:", error);
-      toast.error(`Error deleting chapter: `);
+      toast.error(`Error deleting chapter: ${error}`);
     },
   });
 
@@ -276,7 +277,7 @@ export default function ChapterPage({
         {/* Subchapters Table */}
         <div className="">
           <div className="">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-start px-8 pt-8 mt-5">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">
                   Sub Chapters
@@ -285,13 +286,16 @@ export default function ChapterPage({
                   Total: {subChaptersData.length} sub chapters
                 </p>
               </div>
-              <Button
+              <div className="flex flex-col items-center gap-3">
+                <Button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Sub Chapter
               </Button>
+              {/* <ArchiveSubChapterModal id ={chapter._id}   /> */}
+              </div>
             </div>
           </div>
           <GenericTable

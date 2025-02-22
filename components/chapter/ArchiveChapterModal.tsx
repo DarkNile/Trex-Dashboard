@@ -37,23 +37,6 @@ const GET_CHAPTERS = gql`
   }
 `;
 
-// const DELETE_PRODUCT = gql`
-// mutation HardDeleteProduct($id: String!) {
-//     hardDeleteProduct(id: $id) {
-//         _id
-//         HSCode
-//         nameEn
-//         nameAr
-//         note
-//         defaultDutyRate
-//         serviceTax
-//         adVAT
-//         deletedAt
-//         createdAt
-//         updatedAt
-//     }
-// }
-// `;
 
 const RESTORE_CHAPTER = gql`
 mutation DeleteChapter($id: ID!) {
@@ -102,22 +85,6 @@ type Chapter = ChapterFromAPI & { id: string };
   });
 
 
-  // const { execute: deleteProduct } = useGenericMutation({
-  //   mutation: DELETE_PRODUCT,
-  //   onSuccess: () => {
-  //     refetch();
-  //   },
-  //   onError: (error) => {
-  //     console.log("Error deleting product:", error);
-  //   },
-  // });
-
-  // const handleDelete = (product: Product) => {
-  //   deleteProduct({ id: product._id });
-  // };
-
-
-
   const { execute: restoreChapter } = useGenericMutation({
     mutation: RESTORE_CHAPTER,
     onSuccess: () => {
@@ -162,12 +129,6 @@ type Chapter = ChapterFromAPI & { id: string };
     ];
 
   const actions = [
-    // {
-    //   label: "Delete",
-    //   onClick: handleDelete,
-    //   icon: <Trash className="w-4 h-4" />,
-    //   className: "text-red-500",
-    // },
     {
       label: "Restore",
       onClick: handleRestore,

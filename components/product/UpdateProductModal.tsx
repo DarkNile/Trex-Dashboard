@@ -13,6 +13,7 @@ import { gql } from "@apollo/client";
 import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
 import toast from "react-hot-toast";
+import Textarea from "../UI/textArea";
 
 interface Chapter {
   _id: string;
@@ -41,6 +42,7 @@ interface ProductData {
   HSCode: string;
   nameEn: string;
   nameAr: string;
+  note: string;
   defaultDutyRate: number;
   agreements: AgreementData[];
   subChapterId: string;
@@ -377,7 +379,7 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, type, checked, value } = e.target as HTMLInputElement;
     const newValue = type === "checkbox" ? checked : value;
@@ -547,6 +549,16 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
                 max="100"
                 step="0.1"
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="note">Note</Label>
+              <Textarea
+                id="note"
+                name="note"
+                value={formData.note}
+                onChange={handleInputChange}
               />
             </div>
 

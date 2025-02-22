@@ -48,6 +48,7 @@ interface AgreementData {
   agreementId: {
     _id: string;
     name: string;
+
   };
   applyGlobal: boolean;
 }
@@ -312,7 +313,10 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                     <thead className="bg-gray-100">
                       <tr>
                         <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
-                          Agreement ID
+                          Agreement Name
+                        </th>
+                        <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
+                        Apply Globally
                         </th>
                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                           Reduced Duty Rate
@@ -324,6 +328,9 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                         <tr key={agreement._id || index}>
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">
                             {agreement.agreementId.name}
+                          </td>
+                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">
+                            {agreement.applyGlobal ? "Yes" : "No"}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
                             {agreement.reducedDutyRate}%

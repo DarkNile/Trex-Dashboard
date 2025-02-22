@@ -123,6 +123,7 @@ interface ProductData {
   HSCode: string;
   nameEn: string;
   nameAr: string;
+  note: string;
   defaultDutyRate: number;
   agreements: AgreementData[];
   serviceTax: boolean;
@@ -144,6 +145,7 @@ const Page = () => {
     HSCode: "",
     nameEn: "",
     nameAr: "",
+    note: "",
     defaultDutyRate: 0,
     agreements: [],
     serviceTax: false,
@@ -194,6 +196,7 @@ const Page = () => {
       HSCode: product.HSCode,
       nameEn: product.nameEn,
       nameAr: product.nameAr,
+      note: product.note,
       defaultDutyRate: product.defaultDutyRate,
       agreements: [],
       serviceTax: product.serviceTax,

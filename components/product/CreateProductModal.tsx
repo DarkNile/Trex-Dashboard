@@ -14,6 +14,7 @@ import {
 import { Button } from "../UI/button";
 import { Label } from "../UI/label";
 import { Input } from "../UI/input";
+import Textarea from "../UI/textArea";
 
 // Types
 interface Chapter {
@@ -39,6 +40,7 @@ interface CreateFormData {
   HSCode: string;
   nameEn: string;
   nameAr: string;
+  note: string;
   defaultDutyRate: number;
   subChapterId: string;
   agreements: Array<{
@@ -118,6 +120,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     HSCode: "",
     nameEn: "",
     nameAr: "",
+    note: "",
     defaultDutyRate: 0,
     subChapterId: "",
     agreements: [],
@@ -127,7 +130,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
   });
 
   const { data: chaptersData } = useGenericQuery({ query: GET_CHAPTERS });
-  const { data: agreementsData, loading: agreementsLoading } = useGenericQuery({ 
+  const { data: agreementsData, loading: agreementsLoading } = useGenericQuery({
     query: GET_AGREEMENTS,
     variables: {
       page: currentPage,
@@ -135,7 +138,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     onError: (error) => {
       console.error("Agreements loading error:", error);
       toast.error(`Error loading agreements: ${error.message}`);
-    }
+    },
   });
 
   const { execute: createProduct, isLoading } = useGenericMutation({
@@ -146,6 +149,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
         HSCode: "",
         nameEn: "",
         nameAr: "",
+        note: "",
         defaultDutyRate: 0,
         subChapterId: "",
         agreements: [],
@@ -176,6 +180,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       HSCode: formData.HSCode,
       nameEn: formData.nameEn,
       nameAr: formData.nameAr,
+      note: formData.note,
       defaultDutyRate: Number(formData.defaultDutyRate),
       subChapterId: formData.subChapterId,
       agreements: agreementsString, // Send as a string
@@ -195,7 +200,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, type, checked, value } = e.target as HTMLInputElement;
     setFormData((prev) => ({
@@ -371,12 +376,11 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="note">Note</Label>
-              <Input
+              <Textarea
                 id="note"
                 name="note"
-                type="text"
-                // value={formData.adVAT}
-                // onChange={handleInputChange}
+                value={formData.note}
+                onChange={handleInputChange}
               />
             </div>
 
@@ -420,9 +424,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                               )}
                             </span>
                           )}
-                          <span className="font-medium">
-                            {chapter.nameAr}
-                          </span>
+                          <span className="font-medium">{chapter.nameAr}</span>
                         </div>
 
                         {expandedChapter === chapter._id &&
@@ -568,7 +570,8 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
           <DialogHeader>
             <DialogTitle>
               Select Agreements
-              {!agreementsLoading && agreementsData?.AgreementList?.totalSize && 
+              {!agreementsLoading &&
+                agreementsData?.AgreementList?.totalSize &&
                 ` (${agreementsData.AgreementList.totalSize} total)`}
             </DialogTitle>
           </DialogHeader>
@@ -606,7 +609,9 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                   <div className="flex justify-between items-center mt-4 border-t pt-4">
                     <Button
                       type="button"
-                      onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(0, prev - 1))
+                      }
                       disabled={currentPage === 0}
                       variant="outline"
                       size="sm"
@@ -614,12 +619,16 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                       Previous
                     </Button>
                     <span>
-                      Page {agreementsData.AgreementList.pageNumber + 1} of {agreementsData.AgreementList.totalPages}
+                      Page {agreementsData.AgreementList.pageNumber + 1} of{" "}
+                      {agreementsData.AgreementList.totalPages}
                     </span>
                     <Button
                       type="button"
-                      onClick={() => setCurrentPage(prev => prev + 1)}
-                      disabled={currentPage >= agreementsData.AgreementList.totalPages - 1}
+                      onClick={() => setCurrentPage((prev) => prev + 1)}
+                      disabled={
+                        currentPage >=
+                        agreementsData.AgreementList.totalPages - 1
+                      }
                       variant="outline"
                       size="sm"
                     >
