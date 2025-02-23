@@ -53,10 +53,27 @@ interface CreateFormData {
   type: "regural" | "car";
 }
 
-// GraphQL Queries
+// // GraphQL Queries
+// const GET_CHAPTERS = gql`
+//   query GetChapters {
+//     getChapters(extraFilter: { deleted: false }, pageable: { page: 1 }) {
+//       data {
+//         _id
+//         nameEn
+//         nameAr
+//         subChapters {
+//           _id
+//           nameEn
+//           nameAr
+//         }
+//       }
+//     }
+//   }
+// `;
+
 const GET_CHAPTERS = gql`
-  query GetChapters {
-    getChapters(extraFilter: { deleted: false }, pageable: { page: 1 }) {
+  query GetChapters($page: Int!) {
+    getChapters(extraFilter: { deleted: false }, pageable: { page: $page }) {
       data {
         _id
         nameEn
@@ -67,6 +84,10 @@ const GET_CHAPTERS = gql`
           nameAr
         }
       }
+      totalSize
+      totalPages
+      pageNumber
+      pageSize
     }
   }
 `;
@@ -113,7 +134,13 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
   const [open, setOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [isAgreementDialogOpen, setIsAgreementDialogOpen] = useState(false);
-  const [isChapterDropdownOpen, setIsChapterDropdownOpen] = useState(false);
+  // const [isChapterDropdownOpen, setIsChapterDropdownOpen] = useState(false);
+  const [isChapterDialogOpen, setIsChapterDialogOpen] = useState(false);
+  const [selectedChapter, setSelectedChapter] = useState<{
+    id: string;
+    nameAr: string;
+    type: "chapter" | "subChapter";
+  } | null>(null);
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
   const [selectedName, setSelectedName] = useState("Select a Chapter");
   const [formData, setFormData] = useState<CreateFormData>({
@@ -129,7 +156,17 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     type: "regural",
   });
 
-  const { data: chaptersData } = useGenericQuery({ query: GET_CHAPTERS });
+  // const { data: chaptersData } = useGenericQuery({ query: GET_CHAPTERS });
+  const { data: chaptersData, loading: chaptersLoading } = useGenericQuery({
+    query: GET_CHAPTERS,
+    variables: {
+      page: currentPage,
+    },
+    onError: (error) => {
+      console.error("chapters loading error:", error);
+      toast.error(`Error loading chapters: ${error.message}`);
+    },
+  });
   const { data: agreementsData, loading: agreementsLoading } = useGenericQuery({
     query: GET_AGREEMENTS,
     variables: {
@@ -200,7 +237,9 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, type, checked, value } = e.target as HTMLInputElement;
     setFormData((prev) => ({
@@ -209,22 +248,48 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     }));
   };
 
-  const handleChapterSelect = (chapter: Chapter) => {
-    setFormData((prev) => ({
-      ...prev,
-      subChapterId: chapter._id,
-    }));
-    setSelectedName(chapter.nameAr);
-    setIsChapterDropdownOpen(false);
-  };
+  // const handleChapterSelect = (chapter: Chapter) => {
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     subChapterId: chapter._id,
+  //   }));
+  //   setSelectedName(chapter.nameAr);
+  //   setIsChapterDropdownOpen(false);
+  // };
 
-  const handleSubChapterSelect = (subChapter: SubChapter) => {
-    setFormData((prev) => ({
-      ...prev,
-      subChapterId: subChapter._id,
-    }));
-    setSelectedName(subChapter.nameAr);
-    setIsChapterDropdownOpen(false);
+  // const handleSubChapterSelect = (subChapter: SubChapter) => {
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     subChapterId: subChapter._id,
+  //   }));
+  //   setSelectedName(subChapter.nameAr);
+  //   setIsChapterDropdownOpen(false);
+  // };
+
+  const handleChapterSelect = (
+    chapter: Chapter | SubChapter,
+    type: "chapter" | "subChapter"
+  ) => {
+    if (type === "chapter") {
+      const chap = chapter as Chapter;
+      setSelectedChapter({
+        id: chap._id,
+        nameAr: chap.nameAr,
+        type: "chapter",
+      });
+    } else {
+      const subChap = chapter as SubChapter;
+      setSelectedChapter({
+        id: subChap._id,
+        nameAr: subChap.nameAr,
+        type: "subChapter",
+      });
+      setFormData((prev) => ({
+        ...prev,
+        subChapterId: subChap._id,
+      }));
+    }
+    setIsChapterDialogOpen(false);
   };
 
   const handleAgreementToggle = (agreement: { _id: string; name: string }) => {
@@ -385,7 +450,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
             </div>
 
             {/* Custom Chapter Dropdown */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label>Chapter</Label>
               <div className="relative" dir="rtl">
                 <div
@@ -444,6 +509,25 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                   </div>
                 )}
               </div>
+            </div> */}
+
+            <div className="space-y-2">
+              <Label>Chapter</Label>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full min-h-[40px] h-auto py-2 px-4"
+                onClick={() => setIsChapterDialogOpen(true)}
+              >
+                <div className="flex w-full items-start gap-2">
+                  <span className="flex-grow text-right whitespace-normal break-words leading-normal">
+                    {selectedChapter
+                      ? selectedChapter.nameAr
+                      : "Choose Chapter"}
+                  </span>
+                  <ChevronDown className="w-4 h-4 flex-shrink-0 mt-1" />
+                </div>
+              </Button>
             </div>
             {/* Agreements Dropdown */}
             <div className="space-y-2">
@@ -559,6 +643,204 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Chapter Selection Dialog */}
+      {/* <Dialog
+        open={isChapterDialogOpen}
+        onOpenChange={setIsChapterDialogOpen}
+      >
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>
+              Select Chapter
+              {!chaptersLoading &&
+                chaptersData?.getChapters?.totalSize &&
+                ` (${chaptersData.getChapters.totalSize} total)`}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {chaptersLoading ? (
+              <div className="p-4 text-center">Loading chapters...</div>
+            ) : (
+              <>
+                {chaptersData?.getChapters?.data.map((chapter: Chapter) => {
+                  const isExpanded = expandedChapter === chapter._id;
+                  
+                  return (
+                    <div key={chapter._id} className="border-b last:border-b-0">
+                      <div
+                        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-50"
+                        onClick={() => setExpandedChapter(isExpanded ? null : chapter._id)}
+                      >
+                        <span className="font-medium text-right flex-grow">{chapter.nameAr}</span>
+                        <ChevronDown 
+                          className={`w-5 h-5 transition-transform ${
+                            isExpanded ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </div>
+                      
+                      {isExpanded && chapter.subChapters?.length > 0 && (
+                        <div className="bg-gray-50">
+                          {chapter.subChapters.map((subChapter) => (
+                            <div
+                              key={subChapter._id}
+                              className="flex items-center py-2 px-6 border-t cursor-pointer hover:bg-gray-100"
+                              onClick={() => handleChapterSelect(subChapter, 'subChapter')}
+                            >
+                              <span className="text-right flex-grow">{subChapter.nameAr}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {chaptersData?.getChapters?.totalPages > 1 && (
+                  <div className="flex justify-between items-center mt-4 border-t pt-4">
+                    <Button
+                      type="button"
+                      onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+                      disabled={currentPage === 0}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Previous
+                    </Button>
+                    <span>
+                      Page {chaptersData.getChapters.pageNumber + 1} of{" "}
+                      {chaptersData.getChapters.totalPages}
+                    </span>
+                    <Button
+                      type="button"
+                      onClick={() => setCurrentPage((prev) => prev + 1)}
+                      disabled={currentPage >= chaptersData.getChapters.totalPages - 1}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              onClick={() => setIsChapterDialogOpen(false)}
+            >
+              Done
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog> */}
+
+      {/* Chapter Selection Dialog */}
+      <Dialog open={isChapterDialogOpen} onOpenChange={setIsChapterDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>
+              Select Chapter
+              {!chaptersLoading &&
+                chaptersData?.getChapters?.totalSize &&
+                ` (${chaptersData.getChapters.totalSize} total)`}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {chaptersLoading ? (
+              <div className="p-4 text-center">Loading chapters...</div>
+            ) : (
+              <>
+                {chaptersData?.getChapters?.data.map((chapter: Chapter) => {
+                  const isExpanded = expandedChapter === chapter._id;
+
+                  return (
+                    <div key={chapter._id} className="border-b last:border-b-0">
+                      <div
+                        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-50"
+                        onClick={() => {
+                          if (isExpanded) {
+                            // If already expanded, select the chapter
+                            handleChapterSelect(chapter, "chapter");
+                          } else {
+                            // If not expanded, expand it
+                            setExpandedChapter(chapter._id);
+                          }
+                        }}
+                      >
+                        <span className="font-medium text-right flex-grow">
+                          {chapter.nameAr}
+                        </span>
+                        <ChevronDown
+                          className={`w-5 h-5 transition-transform ${
+                            isExpanded ? "rotate-180" : ""
+                          }`}
+                        />
+                      </div>
+
+                      {isExpanded && chapter.subChapters?.length > 0 && (
+                        <div className="bg-gray-50">
+                          {chapter.subChapters.map((subChapter) => (
+                            <div
+                              key={subChapter._id}
+                              className="flex items-center py-2 px-6 border-t cursor-pointer hover:bg-gray-100"
+                              onClick={() =>
+                                handleChapterSelect(subChapter, "subChapter")
+                              }
+                            >
+                              <span className="text-right flex-grow">
+                                {subChapter.nameAr}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {chaptersData?.getChapters?.totalPages > 1 && (
+                  <div className="flex justify-between items-center mt-4 border-t pt-4">
+                    <Button
+                      type="button"
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(0, prev - 1))
+                      }
+                      disabled={currentPage === 0}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Previous
+                    </Button>
+                    <span>
+                      Page {chaptersData.getChapters.pageNumber + 1} of{" "}
+                      {chaptersData.getChapters.totalPages}
+                    </span>
+                    <Button
+                      type="button"
+                      onClick={() => setCurrentPage((prev) => prev + 1)}
+                      disabled={
+                        currentPage >= chaptersData.getChapters.totalPages - 1
+                      }
+                      variant="outline"
+                      size="sm"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          <div className="flex justify-end">
+            <Button type="button" onClick={() => setIsChapterDialogOpen(false)}>
+              Done
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
