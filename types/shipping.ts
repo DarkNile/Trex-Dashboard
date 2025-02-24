@@ -1,4 +1,6 @@
 export type ShippingPortFromAPI = {
+  updatedAt: any;
+  createdAt: any;
   _id: string;
   nameAr: string;
   nameEn: string;

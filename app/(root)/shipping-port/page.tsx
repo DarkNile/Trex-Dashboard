@@ -153,7 +153,7 @@ const Page = () => {
     {
       label: "View Details",
       onClick: (item: ShippingPort) => {
-        router.push(`shipping-ports/${item.id}`);
+        router.push(`shipping-port/${item.id}`);
       },
       icon: <EyeIcon className="w-4 h-4" />,
       className: "text-green-500",
