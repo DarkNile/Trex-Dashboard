@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/UI/select";
-import {  Plus } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import { gql } from "@apollo/client";
 import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
@@ -33,9 +33,15 @@ const CREATE_SHIPPING_PORT = gql`
 const GET_COUNTRIES = gql`
   query CountryList($page: Int!) {
     countryList(pageable: { page: $page }, extraFilter: { deleted: false }) {
+      totalSize
+      totalPages
+      pageSize
+      pageNumber
       data {
         _id
         nameEn
+        nameAr
+        code
       }
     }
   }
@@ -54,6 +60,7 @@ const portTypes = [
 const CreateShippingPortModal: React.FC<CreateShippingPortModalProps> = ({
   refetch,
 }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
@@ -62,11 +69,44 @@ const CreateShippingPortModal: React.FC<CreateShippingPortModalProps> = ({
     port: "",
     countryId: "",
   });
-
+  const [hasMore, setHasMore] = useState(true);
+  const [loadedCountries, setLoadedCountries] = useState<
+    Array<{ _id: string; nameEn: string }>
+  >([]);
   const { data: countriesData, loading: loadingCountries } = useGenericQuery({
     query: GET_COUNTRIES,
     variables: { page: currentPage },
   });
+
+  useEffect(() => {
+    if (countriesData?.countryList?.data) {
+      setLoadedCountries((prev) => {
+        const newCountries = countriesData.countryList.data.filter(
+          (newCountry: { _id: string }) =>
+            !prev.some((prevCountry) => prevCountry._id === newCountry._id)
+        );
+        return [...prev, ...newCountries];
+      });
+      setHasMore(countriesData.countryList.data.length > 0);
+    }
+  }, [countriesData]);
+
+  useEffect(() => {
+    if (!open) {
+      setCurrentPage(1);
+      setLoadedCountries([]);
+      setHasMore(true);
+    }
+  }, [open]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 10;
+
+    if (isNearBottom && hasMore && !loadingCountries) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
 
   const { execute: createShippingPort, isLoading } = useGenericMutation({
     mutation: CREATE_SHIPPING_PORT,
@@ -141,6 +181,57 @@ const CreateShippingPortModal: React.FC<CreateShippingPortModalProps> = ({
               dir="rtl"
             />
           </div>
+
+          <div className="space-y-2">
+            <Label>Country</Label>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex relative h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={loadingCountries}
+              >
+                {formData.countryId
+                  ? loadedCountries.find((c) => c._id === formData.countryId)
+                      ?.nameEn
+                  : "Select country"}
+                <ChevronDown className="ml-2 h-4 w-4 opacity-50 absolute right-2" />
+              </button>
+
+              {isDropdownOpen && (
+                <div
+                  className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto border border-input bg-background rounded-md shadow-lg"
+                  onScroll={handleScroll}
+                >
+                  {loadedCountries.map((country) => (
+                    <div
+                      key={country._id}
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          countryId: country._id,
+                        }));
+                        setIsDropdownOpen(false);
+                      }}
+                      className="px-3 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                    >
+                      {country.nameEn}
+                    </div>
+                  ))}
+                  {loadingCountries && (
+                    <div className="px-3 py-2 text-muted-foreground">
+                      Loading more countries...
+                    </div>
+                  )}
+                  {!hasMore && (
+                    <div className="px-3 py-2 text-muted-foreground">
+                      No more countries
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="port">Port Type</Label>
             <Select
@@ -161,7 +252,7 @@ const CreateShippingPortModal: React.FC<CreateShippingPortModalProps> = ({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="countryId">Country</Label>
             <Select
               value={formData.countryId}
@@ -180,7 +271,8 @@ const CreateShippingPortModal: React.FC<CreateShippingPortModalProps> = ({
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
+
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Creating..." : "Create Shipping Port"}
           </Button>
