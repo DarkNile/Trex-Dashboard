@@ -626,7 +626,7 @@ const Page = () => {
           totalPages={data?.searchProduct?.totalPages || 1}
           totalItems={data?.searchProduct?.totalSize || 0}
           pageSize={data?.searchProduct?.pageSize}
-          onPageChange={handlePageChange}
+          onPageChange={handlePageChange} 
         />
       )}
     </div>
