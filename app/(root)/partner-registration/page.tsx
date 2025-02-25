@@ -7,6 +7,7 @@ import GenericTable from "@/components/UI/Table/GenericTable";
 import Pagination from "@/components/UI/pagination/Pagination";
 import { gql } from "@apollo/client/core";
 import toast from "react-hot-toast";
+import ArchivePartnersModal from "@/components/Partner-registration/ArchivePartnersModal";
 
 type Action<T> = {
   label: string;
@@ -158,6 +159,13 @@ const Page = () => {
     }
   };
 
+  const transformedData: Registration[] = (data?.getAllPartnerRequests?.data || []).map(
+    (item: Registration) => ({
+      ...item,
+      id: item._id,
+    })
+  );
+
   const columns: {
     header: string;
     key: keyof Registration;
@@ -222,13 +230,26 @@ const Page = () => {
   console.log("registrations", registrations);
 
   return (
+
+
+
     <div className="">
+      <div className="flex justify-between items-start px-8 pt-8 mt-5">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+        Partner Registration
+        </h1>
+        <div className="flex flex-col items-center">
+          <ArchivePartnersModal />
+        </div>
+      </div>
       <GenericTable
         data={registrations?.data || []}
         columns={columns}
         actions={actions}
-        title="Partner Registration"
-        subtitle={`Total Partners: ${registrations?.totalSize || 0}`}
+        // title="Partner Registration"
+        subtitle={`Total Partners: ${
+          data?.getAllPartnerRequests?.totalSize || transformedData.length
+        }`}
         isLoading={loading}
         error={error}
       />
@@ -242,6 +263,7 @@ const Page = () => {
         />
       )}
     </div>
+
   );
 };
 

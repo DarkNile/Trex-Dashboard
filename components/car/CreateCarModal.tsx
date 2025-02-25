@@ -14,7 +14,6 @@ import {
 import { Button } from "../UI/button";
 import { Label } from "../UI/label";
 import { Input } from "../UI/input";
-import Textarea from "../UI/textArea";
 
 // Types
 interface Chapter {
@@ -37,10 +36,9 @@ interface AgreementInput {
 }
 
 interface CreateFormData {
-  HSCode: string;
+  // HSCode: string;
   nameEn: string;
   nameAr: string;
-  note: string;
   defaultDutyRate: number;
   subChapterId: string;
   agreements: Array<{
@@ -50,30 +48,13 @@ interface CreateFormData {
   }>;
   serviceTax: boolean;
   adVAT: number;
-  type: "regural" | "car";
+  type: "car";
 }
 
-// // GraphQL Queries
-// const GET_CHAPTERS = gql`
-//   query GetChapters {
-//     getChapters(extraFilter: { deleted: false }, pageable: { page: 1 }) {
-//       data {
-//         _id
-//         nameEn
-//         nameAr
-//         subChapters {
-//           _id
-//           nameEn
-//           nameAr
-//         }
-//       }
-//     }
-//   }
-// `;
-
+// GraphQL Queries
 const GET_CHAPTERS = gql`
-  query GetChapters($page: Int!) {
-    getChapters(extraFilter: { deleted: false }, pageable: { page: $page }) {
+  query GetChapters {
+    getChapters(extraFilter: { deleted: false }, pageable: { page: 1 }) {
       data {
         _id
         nameEn
@@ -84,24 +65,9 @@ const GET_CHAPTERS = gql`
           nameAr
         }
       }
-      totalSize
-      totalPages
-      pageNumber
-      pageSize
     }
   }
 `;
-
-// const GET_AGREEMENTS = gql`
-//   query GetAgreements {
-//     AgreementList(filter: { deleted: false }, pageable: { page: 1 }) {
-//       data {
-//         _id
-//         name
-//       }
-//     }
-//   }
-// `;
 
 const GET_AGREEMENTS = gql`
   query GetAgreements($page: Int!) {
@@ -124,49 +90,32 @@ const CREATE_PRODUCT = gql`
   }
 `;
 
-interface CreateProductModalProps {
+interface CreateCarModalProps {
   onSuccess?: () => void;
 }
 
-const CreateProductModal: React.FC<CreateProductModalProps> = ({
+const CreateCarModal: React.FC<CreateCarModalProps> = ({
   onSuccess,
 }) => {
   const [open, setOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [isAgreementDialogOpen, setIsAgreementDialogOpen] = useState(false);
-  // const [isChapterDropdownOpen, setIsChapterDropdownOpen] = useState(false);
-  const [isChapterDialogOpen, setIsChapterDialogOpen] = useState(false);
-  const [selectedChapter, setSelectedChapter] = useState<{
-    id: string;
-    nameAr: string;
-    type: "chapter" | "subChapter";
-  } | null>(null);
+  const [isChapterDropdownOpen, setIsChapterDropdownOpen] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
   const [selectedName, setSelectedName] = useState("Select a Chapter");
   const [formData, setFormData] = useState<CreateFormData>({
-    HSCode: "",
+    // HSCode: "",
     nameEn: "",
     nameAr: "",
-    note: "",
     defaultDutyRate: 0,
     subChapterId: "",
     agreements: [],
     serviceTax: false,
     adVAT: 0,
-    type: "regural",
+    type: "car",
   });
 
-  // const { data: chaptersData } = useGenericQuery({ query: GET_CHAPTERS });
-  const { data: chaptersData, loading: chaptersLoading } = useGenericQuery({
-    query: GET_CHAPTERS,
-    variables: {
-      page: currentPage,
-    },
-    onError: (error) => {
-      console.error("chapters loading error:", error);
-      toast.error(`Error loading chapters: ${error.message}`);
-    },
-  });
+  const { data: chaptersData } = useGenericQuery({ query: GET_CHAPTERS });
   const { data: agreementsData, loading: agreementsLoading } = useGenericQuery({
     query: GET_AGREEMENTS,
     variables: {
@@ -175,7 +124,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     onError: (error) => {
       console.error("Agreements loading error:", error);
       toast.error(`Error loading agreements: ${error.message}`);
-    },
+    }
   });
 
   const { execute: createProduct, isLoading } = useGenericMutation({
@@ -183,23 +132,22 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     onSuccess: () => {
       setOpen(false);
       setFormData({
-        HSCode: "",
+        // HSCode: "",
         nameEn: "",
         nameAr: "",
-        note: "",
         defaultDutyRate: 0,
         subChapterId: "",
         agreements: [],
         serviceTax: false,
         adVAT: 0,
-        type: "regural",
+        type: "car",
       });
       setSelectedName("Select a Chapter");
-      toast.success("Product created successfully! ✅");
+      toast.success("Car created successfully! ✅");
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error(`Error creating product: ${error.message}`);
+      toast.error(`Error creating Car: ${error.message}`);
     },
   });
 
@@ -214,32 +162,28 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       .join(",");
 
     const createProductInput = {
-      HSCode: formData.HSCode,
+      // HSCode: formData.HSCode,
       nameEn: formData.nameEn,
       nameAr: formData.nameAr,
-      note: formData.note,
       defaultDutyRate: Number(formData.defaultDutyRate),
       subChapterId: formData.subChapterId,
-      agreements: agreementsString, // Send as a string
+      agreements: agreementsString,
       serviceTax: formData.serviceTax,
       adVAT: Number(formData.adVAT),
-      type: "regural",
+      type: "car",
     };
 
     console.log("Mutation Input:", {
       createProductInput: createProductInput,
     });
 
-    // Send the mutation
     createProduct({
       createProductInput: createProductInput,
     });
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, type, checked, value } = e.target as HTMLInputElement;
     setFormData((prev) => ({
@@ -248,48 +192,22 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     }));
   };
 
-  // const handleChapterSelect = (chapter: Chapter) => {
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     subChapterId: chapter._id,
-  //   }));
-  //   setSelectedName(chapter.nameAr);
-  //   setIsChapterDropdownOpen(false);
-  // };
+  const handleChapterSelect = (chapter: Chapter) => {
+    setFormData((prev) => ({
+      ...prev,
+      subChapterId: chapter._id,
+    }));
+    setSelectedName(chapter.nameAr);
+    setIsChapterDropdownOpen(false);
+  };
 
-  // const handleSubChapterSelect = (subChapter: SubChapter) => {
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     subChapterId: subChapter._id,
-  //   }));
-  //   setSelectedName(subChapter.nameAr);
-  //   setIsChapterDropdownOpen(false);
-  // };
-
-  const handleChapterSelect = (
-    chapter: Chapter | SubChapter,
-    type: "chapter" | "subChapter"
-  ) => {
-    if (type === "chapter") {
-      const chap = chapter as Chapter;
-      setSelectedChapter({
-        id: chap._id,
-        nameAr: chap.nameAr,
-        type: "chapter",
-      });
-    } else {
-      const subChap = chapter as SubChapter;
-      setSelectedChapter({
-        id: subChap._id,
-        nameAr: subChap.nameAr,
-        type: "subChapter",
-      });
-      setFormData((prev) => ({
-        ...prev,
-        subChapterId: subChap._id,
-      }));
-    }
-    setIsChapterDialogOpen(false);
+  const handleSubChapterSelect = (subChapter: SubChapter) => {
+    setFormData((prev) => ({
+      ...prev,
+      subChapterId: subChapter._id,
+    }));
+    setSelectedName(subChapter.nameAr);
+    setIsChapterDropdownOpen(false);
   };
 
   const handleAgreementToggle = (agreement: { _id: string; name: string }) => {
@@ -309,8 +227,8 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
 
       const newAgreement: AgreementInput = {
         agreementId: agreement._id,
-        reducedDutyRate: 0, // Default value, can be modified
-        applyGlobal: true, // Default value, can be modified
+        reducedDutyRate: 0,
+        applyGlobal: true,
       };
 
       return {
@@ -370,16 +288,15 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
         <DialogTrigger asChild>
           <Button className="mb-4">
             <Plus className="w-4 h-4 mr-2" />
-            Add New Product
+            Add New Car
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Product</DialogTitle>
+            <DialogTitle>Create New Car</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Basic form fields */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="HSCode">HS Code</Label>
               <Input
                 id="HSCode"
@@ -388,7 +305,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 onChange={handleInputChange}
                 required
               />
-            </div>
+            </div> */}
 
             <div className="space-y-2">
               <Label htmlFor="nameEn">English Name</Label>
@@ -440,17 +357,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="note">Note</Label>
-              <Textarea
-                id="note"
-                name="note"
-                value={formData.note}
-                onChange={handleInputChange}
-              />
-            </div>
-
-            {/* Custom Chapter Dropdown */}
-            {/* <div className="space-y-2">
               <Label>Chapter</Label>
               <div className="relative" dir="rtl">
                 <div
@@ -489,7 +395,9 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                               )}
                             </span>
                           )}
-                          <span className="font-medium">{chapter.nameAr}</span>
+                          <span className="font-medium">
+                            {chapter.nameAr}
+                          </span>
                         </div>
 
                         {expandedChapter === chapter._id &&
@@ -509,27 +417,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                   </div>
                 )}
               </div>
-            </div> */}
-
-            <div className="space-y-2">
-              <Label>Chapter</Label>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full min-h-[40px] h-auto py-2 px-4"
-                onClick={() => setIsChapterDialogOpen(true)}
-              >
-                <div className="flex w-full items-start gap-2">
-                  <span className="flex-grow text-right whitespace-normal break-words leading-normal">
-                    {selectedChapter
-                      ? selectedChapter.nameAr
-                      : "Choose Chapter"}
-                  </span>
-                  <ChevronDown className="w-4 h-4 flex-shrink-0 mt-1" />
-                </div>
-              </Button>
             </div>
-            {/* Agreements Dropdown */}
             <div className="space-y-2">
               <Label>Agreements</Label>
               <div className="space-y-2">
@@ -646,204 +534,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Chapter Selection Dialog */}
-      {/* <Dialog
-        open={isChapterDialogOpen}
-        onOpenChange={setIsChapterDialogOpen}
-      >
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>
-              Select Chapter
-              {!chaptersLoading &&
-                chaptersData?.getChapters?.totalSize &&
-                ` (${chaptersData.getChapters.totalSize} total)`}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
-            {chaptersLoading ? (
-              <div className="p-4 text-center">Loading chapters...</div>
-            ) : (
-              <>
-                {chaptersData?.getChapters?.data.map((chapter: Chapter) => {
-                  const isExpanded = expandedChapter === chapter._id;
-                  
-                  return (
-                    <div key={chapter._id} className="border-b last:border-b-0">
-                      <div
-                        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-50"
-                        onClick={() => setExpandedChapter(isExpanded ? null : chapter._id)}
-                      >
-                        <span className="font-medium text-right flex-grow">{chapter.nameAr}</span>
-                        <ChevronDown 
-                          className={`w-5 h-5 transition-transform ${
-                            isExpanded ? 'rotate-180' : ''
-                          }`}
-                        />
-                      </div>
-                      
-                      {isExpanded && chapter.subChapters?.length > 0 && (
-                        <div className="bg-gray-50">
-                          {chapter.subChapters.map((subChapter) => (
-                            <div
-                              key={subChapter._id}
-                              className="flex items-center py-2 px-6 border-t cursor-pointer hover:bg-gray-100"
-                              onClick={() => handleChapterSelect(subChapter, 'subChapter')}
-                            >
-                              <span className="text-right flex-grow">{subChapter.nameAr}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {chaptersData?.getChapters?.totalPages > 1 && (
-                  <div className="flex justify-between items-center mt-4 border-t pt-4">
-                    <Button
-                      type="button"
-                      onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-                      disabled={currentPage === 0}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Previous
-                    </Button>
-                    <span>
-                      Page {chaptersData.getChapters.pageNumber + 1} of{" "}
-                      {chaptersData.getChapters.totalPages}
-                    </span>
-                    <Button
-                      type="button"
-                      onClick={() => setCurrentPage((prev) => prev + 1)}
-                      disabled={currentPage >= chaptersData.getChapters.totalPages - 1}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              onClick={() => setIsChapterDialogOpen(false)}
-            >
-              Done
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog> */}
-
-      {/* Chapter Selection Dialog */}
-      <Dialog open={isChapterDialogOpen} onOpenChange={setIsChapterDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>
-              Select Chapter
-              {!chaptersLoading &&
-                chaptersData?.getChapters?.totalSize &&
-                ` (${chaptersData.getChapters.totalSize} total)`}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
-            {chaptersLoading ? (
-              <div className="p-4 text-center">Loading chapters...</div>
-            ) : (
-              <>
-                {chaptersData?.getChapters?.data.map((chapter: Chapter) => {
-                  const isExpanded = expandedChapter === chapter._id;
-
-                  return (
-                    <div key={chapter._id} className="border-b last:border-b-0">
-                      <div
-                        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-50"
-                        onClick={() => {
-                          if (isExpanded) {
-                            // If already expanded, select the chapter
-                            handleChapterSelect(chapter, "chapter");
-                          } else {
-                            // If not expanded, expand it
-                            setExpandedChapter(chapter._id);
-                          }
-                        }}
-                      >
-                        <span className="font-medium text-right flex-grow">
-                          {chapter.nameAr}
-                        </span>
-                        <ChevronDown
-                          className={`w-5 h-5 transition-transform ${
-                            isExpanded ? "rotate-180" : ""
-                          }`}
-                        />
-                      </div>
-
-                      {isExpanded && chapter.subChapters?.length > 0 && (
-                        <div className="bg-gray-50">
-                          {chapter.subChapters.map((subChapter) => (
-                            <div
-                              key={subChapter._id}
-                              className="flex items-center py-2 px-6 border-t cursor-pointer hover:bg-gray-100"
-                              onClick={() =>
-                                handleChapterSelect(subChapter, "subChapter")
-                              }
-                            >
-                              <span className="text-right flex-grow">
-                                {subChapter.nameAr}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {chaptersData?.getChapters?.totalPages > 1 && (
-                  <div className="flex justify-between items-center mt-4 border-t pt-4">
-                    <Button
-                      type="button"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(0, prev - 1))
-                      }
-                      disabled={currentPage === 0}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Previous
-                    </Button>
-                    <span>
-                      Page {chaptersData.getChapters.pageNumber + 1} of{" "}
-                      {chaptersData.getChapters.totalPages}
-                    </span>
-                    <Button
-                      type="button"
-                      onClick={() => setCurrentPage((prev) => prev + 1)}
-                      disabled={
-                        currentPage >= chaptersData.getChapters.totalPages - 1
-                      }
-                      variant="outline"
-                      size="sm"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          <div className="flex justify-end">
-            <Button type="button" onClick={() => setIsChapterDialogOpen(false)}>
-              Done
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <Dialog
         open={isAgreementDialogOpen}
         onOpenChange={setIsAgreementDialogOpen}
@@ -852,8 +542,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
           <DialogHeader>
             <DialogTitle>
               Select Agreements
-              {!agreementsLoading &&
-                agreementsData?.AgreementList?.totalSize &&
+              {!agreementsLoading && agreementsData?.AgreementList?.totalSize && 
                 ` (${agreementsData.AgreementList.totalSize} total)`}
             </DialogTitle>
           </DialogHeader>
@@ -891,9 +580,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                   <div className="flex justify-between items-center mt-4 border-t pt-4">
                     <Button
                       type="button"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(0, prev - 1))
-                      }
+                      onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
                       disabled={currentPage === 0}
                       variant="outline"
                       size="sm"
@@ -901,16 +588,12 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                       Previous
                     </Button>
                     <span>
-                      Page {agreementsData.AgreementList.pageNumber + 1} of{" "}
-                      {agreementsData.AgreementList.totalPages}
+                      Page {agreementsData.AgreementList.pageNumber + 1} of {agreementsData.AgreementList.totalPages}
                     </span>
                     <Button
                       type="button"
-                      onClick={() => setCurrentPage((prev) => prev + 1)}
-                      disabled={
-                        currentPage >=
-                        agreementsData.AgreementList.totalPages - 1
-                      }
+                      onClick={() => setCurrentPage(prev => prev + 1)}
+                      disabled={currentPage >= agreementsData.AgreementList.totalPages - 1}
                       variant="outline"
                       size="sm"
                     >
@@ -935,4 +618,4 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
   );
 };
 
-export default CreateProductModal;
+export default CreateCarModal;

@@ -57,6 +57,7 @@ interface ScheduleTaxType {
   fee: number;
   max: number;
   min: number;
+  enhancementFee: number;
   measurementId?: {
     _id: string;
     unitNameEn: string;
@@ -83,6 +84,7 @@ const UpdateScheduleTaxModal: React.FC<UpdateScheduleTaxModalProps> = ({
     fee: scheduleTax.fee || 0,
     max: scheduleTax.max || 0,
     min: scheduleTax.min || 0,
+    enhancementFee: scheduleTax.enhancementFee || 0,
   });
 
   const { data: measurementsData, loading: loadingMeasurements } =
@@ -118,7 +120,7 @@ const UpdateScheduleTaxModal: React.FC<UpdateScheduleTaxModalProps> = ({
     setFormData((prev) => ({
       ...prev,
       [name]:
-        name === "fee" || name === "max" || name === "min"
+        name === "fee" || name === "max" || name === "min" || name === "enhancementFee"
           ? Number(value)
           : value,
     }));
@@ -185,6 +187,19 @@ const UpdateScheduleTaxModal: React.FC<UpdateScheduleTaxModalProps> = ({
               name="max"
               type="number"
               value={formData.max}
+              onChange={handleInputChange}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="enhancementFee" className="text-right">
+              Enhancement Fee
+            </Label>
+            <Input
+              id="enhancementFee"
+              name="enhancementFee"
+              type="number"
+              value={formData.enhancementFee}
               onChange={handleInputChange}
               className="col-span-3"
             />

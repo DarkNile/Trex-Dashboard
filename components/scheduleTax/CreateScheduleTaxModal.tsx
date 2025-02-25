@@ -73,6 +73,7 @@ const CreateScheduleTaxModal: React.FC<CreateScheduleTaxModalProps> = ({
     fee: 0,
     max: 0,
     min: 0,
+    enhancementFee:0,
   });
 
   const { data: measurementsData, loading: loadingMeasurements } =
@@ -91,6 +92,7 @@ const CreateScheduleTaxModal: React.FC<CreateScheduleTaxModalProps> = ({
         fee: 0,
         max: 0,
         min: 0,
+        enhancementFee:0,
       });
       toast.success("Schedule tax created successfully! ✅");
       refetch();
@@ -115,7 +117,7 @@ const CreateScheduleTaxModal: React.FC<CreateScheduleTaxModalProps> = ({
     setFormData((prev) => ({
       ...prev,
       [name]:
-        name === "fee" || name === "max" || name === "min"
+        name === "fee" || name === "max" || name === "min" || name === "enhancementFee"
           ? Number(value)
           : value,
     }));
@@ -188,6 +190,19 @@ const CreateScheduleTaxModal: React.FC<CreateScheduleTaxModalProps> = ({
               name="max"
               type="number"
               value={formData.max}
+              onChange={handleInputChange}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="enhancementFee" className="text-right">
+              Enhancement Fee
+            </Label>
+            <Input
+              id="enhancementFee"
+              name="enhancementFee"
+              type="number"
+              value={formData.enhancementFee}
               onChange={handleInputChange}
               className="col-span-3"
             />

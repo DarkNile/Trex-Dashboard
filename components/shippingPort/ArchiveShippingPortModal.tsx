@@ -1,23 +1,27 @@
-"use client";
+import React, { JSX, useState } from "react";
+import { ArchiveRestore, Pen, Trash } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../UI/dialog";
+import { Button } from "../UI/button";
+
 import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
 import { gql } from "@apollo/client";
-import React, { useState } from "react";
-import { EyeIcon, Pen, TrashIcon } from "lucide-react";
 import GenericTable from "@/components/UI/Table/GenericTable";
 import Pagination from "@/components/UI/pagination/Pagination";
 import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
-import CreateShippingPortModal from "@/components/shippingPort/CreateShippingPortModal";
-import UpdateShippingPortModal from "@/components/shippingPort/UpdateShippingPortModal";
 import { ShippingPort, ShippingPortFromAPI } from "@/types/shipping";
-import ArchiveShippingPortModal from "@/components/shippingPort/ArchiveShippingPortModal";
 
 const GET_SHIPPING_PORTS = gql`
   query GetShippingPorts($page: Int!) {
     getShippingPortList(
       pageable: { page: $page }
-      extraFilter: { deleted: false }
+      extraFilter: { deleted: true }
     ) {
       totalSize
       totalPages
@@ -40,33 +44,50 @@ const GET_SHIPPING_PORTS = gql`
 `;
 
 const DELETE_SHIPPING_PORT = gql`
-  mutation SoftDeleteShippingPort($id: ID!) {
-    softDeleteShippingPort(id: $id)
+  mutation HardDeleteShippingPort($id: ID!) {
+    hardDeleteShippingPort(id: $id) {
+      _id
+      nameEn
+      nameAr
+      port
+    }
   }
 `;
 
-const Page = () => {
-  const [currentPage, setCurrentPage] = useState(1);
+
+const RESTORE_SHIPPING_PORT = gql`
+  mutation RestoreShippingPort($id: ID!) {
+    restoreShippingPort(id: $id) {
+      _id
+      nameEn
+      nameAr
+      port
+    }
+  }
+`;
+
+const ArchiveShippingPortModal = () => {
+  const [open, setOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 10;
-  const router = useRouter();
 
   // Keep track of which ports are being edited
   const [editingPorts, setEditingPorts] = useState<Record<string, boolean>>({});
 
   const { data, loading, error, refetch } = useGenericQuery({
-    query: GET_SHIPPING_PORTS,
-    variables: {
-      page: currentPage,
-      size: pageSize,
-    },
-    onError: (error) => {
-      console.log("Error details:", {
-        message: error.message,
-        stack: error.stack,
-        graphQLErrors: error,
-      });
-    },
-  });
+      query: GET_SHIPPING_PORTS,
+      variables: {
+        page: currentPage,
+        size: pageSize,
+      },
+      onError: (error) => {
+        console.log("Error details:", {
+          message: error.message,
+          stack: error.stack,
+          graphQLErrors: error,
+        });
+      },
+    });
 
   const { execute: deleteShippingPort } = useGenericMutation({
     mutation: DELETE_SHIPPING_PORT,
@@ -84,26 +105,26 @@ const Page = () => {
     deleteShippingPort({ id: port._id });
   };
 
-  const handleEdit = (port: ShippingPort) => {
-    setEditingPorts((prev) => ({
-      ...prev,
-      [port._id]: true,
-    }));
-  };
+  const { execute: restoreShippingPort } = useGenericMutation({
+    mutation: RESTORE_SHIPPING_PORT,
+    onSuccess: () => {
+      refetch();
+    },
+    onError: (error) => {
+      console.log("Error restoring Agreement:", error);
+    },
+  });
 
-  const handleCloseEdit = (portId: string) => {
-    setEditingPorts((prev) => ({
-      ...prev,
-      [portId]: false,
-    }));
+  const handleRestore = (port: ShippingPort) => {
+    restoreShippingPort({ id: port._id });
   };
 
   const transformedData: ShippingPort[] = (
-    data?.getShippingPortList?.data || []
-  ).map((item: ShippingPortFromAPI) => ({
-    ...item,
-    id: item._id,
-  }));
+      data?.getShippingPortList?.data || []
+    ).map((item: ShippingPortFromAPI) => ({
+      ...item,
+      id: item._id,
+    }));
 
   const columns = [
     {
@@ -141,22 +162,14 @@ const Page = () => {
     {
       label: "Delete",
       onClick: handleDelete,
-      icon: <TrashIcon className="w-4 h-4" />,
+      icon: <Trash className="w-4 h-4" />,
       className: "text-red-500",
     },
     {
-      label: "Edit",
-      onClick: handleEdit,
-      icon: <Pen className="w-4 h-4" />,
+      label: "Restore",
+      onClick: handleRestore,
       className: "text-blue-500",
-    },
-    {
-      label: "View Details",
-      onClick: (item: ShippingPort) => {
-        router.push(`shipping-port/${item.id}`);
-      },
-      icon: <EyeIcon className="w-4 h-4" />,
-      className: "text-green-500",
+      icon: <ArchiveRestore className="w-4 h-4" />,
     },
   ];
 
@@ -167,31 +180,20 @@ const Page = () => {
   };
 
   return (
-    <div className="">
-      <div className="flex justify-between items-start px-8 pt-8 mt-5">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-          Shipping Ports
-        </h1>
-        <div className="flex flex-col items-center">
-          <CreateShippingPortModal refetch={refetch} />
-          <ArchiveShippingPortModal />
-        </div>
-        
-      </div>
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button className="mb-4 bg-red-950">
+            <Trash className="w-4 h-4 mr-2" />
+            Deleted shippingPorts
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Deleted shippingPorts</DialogTitle>
+          </DialogHeader>
 
-      {transformedData.map(
-        (port) =>
-          editingPorts[port._id] && (
-            <UpdateShippingPortModal
-              key={port._id}
-              shippingPort={port}
-              refetch={refetch}
-              onClose={() => handleCloseEdit(port._id)}
-            />
-          )
-      )}
-
-      <GenericTable
+          <GenericTable
         data={transformedData}
         columns={columns}
         actions={actions}
@@ -202,7 +204,7 @@ const Page = () => {
         error={error || null}
       />
 
-      {!loading && !error && data?.getShippingPortList?.totalPages && (
+{!loading && !error && data?.getShippingPortList?.totalPages && (
         <Pagination
           currentPage={currentPage}
           totalPages={data.getShippingPortList.totalPages || 1}
@@ -211,8 +213,21 @@ const Page = () => {
           onPageChange={handlePageChange}
         />
       )}
-    </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="bg-red-950 text-white"
+              onClick={() => setOpen(false)}
+            >
+              Done
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
-export default Page;
+export default ArchiveShippingPortModal;

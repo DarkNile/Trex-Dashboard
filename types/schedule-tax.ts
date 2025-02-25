@@ -23,6 +23,7 @@ export type CreateScheduleTaxInput = {
   fee: number;
   max: number;
   min: number;
+  enhancementFee: number;
 };
 
 export type ScheduleTaxType = {
@@ -36,6 +37,7 @@ export type ScheduleTaxType = {
   fee: number;
   max: number;
   min: number;
+  enhancementFee: number;
 };
 
 export type UpdateScheduleTaxInput = CreateScheduleTaxInput & {

@@ -86,7 +86,7 @@ const GenericTable = <T extends { id: string | number }>({
                     {columns.map((column) => (
                       <td
                         key={String(column.key)}
-                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                        className="px-6 py-4 text-sm text-gray-500 whitespace-normal break-words leading-normal min-w-[250px]"
                       >
                         {column.render
                           ? column.render(item[column.key], item)

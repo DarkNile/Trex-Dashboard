@@ -7,6 +7,7 @@ import {
   SquareArrowRightIcon,
   TableOfContents,
   Weight,
+  Car
 } from "lucide-react";
 
 interface MenuItem {
@@ -34,6 +35,12 @@ export const menuItems: MenuItem[] = [
     icon: <TableOfContents />,
     id: 3,
     url: "/chapters",
+  },
+  {
+    name: "Cars",
+    icon: <Car />,
+    id: 4,
+    url: "/cars",
   },
   {
     name: "Products",
