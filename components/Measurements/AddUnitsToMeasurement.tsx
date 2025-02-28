@@ -54,13 +54,65 @@ const GET_SUBCHAPTERS = gql`
 `;
 
 const GET_PRODUCTS = gql`
-  query GetProducts($page: Int!) {
-    allProducts(deleted: { deleted: false }, pageable: { page: $page }) {
+  query AllProducts{
+    allProducts(deleted: { deleted: false }) {
+      totalSize
+      totalPages
+      pageSize
+      pageNumber
       data {
         _id
         HSCode
         nameEn
         nameAr
+        note
+        defaultDutyRate
+        serviceTax
+        adVAT
+        deletedAt
+        createdAt
+        updatedAt
+        agreements {
+          _id
+          reducedDutyRate
+          agreementId {
+            _id
+            name
+            note
+            deletedAt
+            createdAt
+            updatedAt
+            countryIds {
+              _id
+              nameEn
+              nameAr
+              code
+              deletedAt
+            }
+          }
+          applyGlobal
+        }
+        subChapterId {
+          _id
+          nameEn
+          nameAr
+          deletedAt
+          createdAt
+          updatedAt
+          chapterId {
+            _id
+            nameEn
+            nameAr
+            deletedAt
+            createdAt
+            updatedAt
+          }
+        }
+        measurementUnit {
+          _id
+          unitNameAr
+          unitNameEn
+        }
       }
     }
   }
@@ -135,7 +187,7 @@ const AddUnitsToMeasurement: React.FC<AddUnitsToMeasurementProps> = ({
   const productOptions: SelectOption[] =
     productsData?.allProducts?.data.map((product: any) => ({
       value: product._id,
-      label: `${product.nameEn} - ${product.HSCode}`,
+      label: `${product.nameAr} - ${product.HSCode}`,
     })) || [];
 
   // Mutation for adding units to measurement

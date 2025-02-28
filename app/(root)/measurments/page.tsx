@@ -47,6 +47,13 @@ const DELETE_MEASUREMENT = gql`
   }
 `;
 
+const DELETE_UNITS = gql`
+  mutation RemoveUnitsFromMeasurement($updateMeasurementInput: addChapterOrSubChapterOrItemsToMeasurementInput!) {
+    removeUnitsFromMeasurement(updateMeasurementInput: $updateMeasurementInput)
+  }
+`;
+
+
 type User = {
   _id: string;
   firstName: string;
@@ -102,9 +109,24 @@ const Page = () => {
       console.log("Error deleting measurement:", error);
     },
   });
+  
 
   const handleDelete = (measurement: Measurement) => {
     deleteMeasurement({ id: measurement._id });
+  };
+
+  const { execute: deleteUnits } = useGenericMutation({
+    mutation: DELETE_UNITS,
+    onSuccess: () => {
+      refetch();
+    },
+    onError: (error) => {
+      console.log("Error removing units from measurement:", error);
+    },
+  });
+
+  const handleDeleteUnits = (measurement: Measurement) => {
+    deleteUnits({ id: measurement._id });
   };
 
   const handleUpdate = (measurement: Measurement) => {
@@ -200,9 +222,7 @@ const Page = () => {
     },
     {
       label: "Remove Units",
-      onClick: () => {
-        console.log("Remove Subchapter");
-      },
+      onClick: handleDeleteUnits,
       icon: <Trash2 className="w-4 h-4" />,
       className: "text-red-500",
     },

@@ -3,44 +3,58 @@ import React, { use } from "react";
 import { gql } from "@apollo/client";
 import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/UI/card";
-import { BookOpen, Tag, FileText, DollarSign, Calendar, Hash, Info } from "lucide-react";
+import {
+  BookOpen,
+  Tag,
+  FileText,
+  DollarSign,
+  Calendar,
+  Hash,
+  Info,
+} from "lucide-react";
 import { Badge } from "@/components/UI/badge";
 
 const GET_PRODUCT = gql`
   query Product($id: ID!) {
     product(id: $id) {
+      _id
+      HSCode
+      nameEn
+      nameAr
+      note
+      defaultDutyRate
+      serviceTax
+      adVAT
+      deletedAt
+      createdAt
+      updatedAt
+      subChapterId {
         _id
-        HSCode
         nameEn
         nameAr
-        note
-        defaultDutyRate
-        serviceTax
-        adVAT
         deletedAt
         createdAt
         updatedAt
-        subChapterId {
-            _id
-            nameEn
-            nameAr
-            deletedAt
-            createdAt
-            updatedAt
+      }
+      agreements {
+        _id
+        reducedDutyRate
+        agreementId {
+          _id
+          name
         }
-        agreements {
-                _id
-                reducedDutyRate
-                agreementId {
-                    _id
-                    name
-                }
-                applyGlobal
-            }
+        applyGlobal
+      }
+      scheduleTaxes {
+        _id
+        min
+        max
+        fee
+        enhancementFee
+      }
     }
-}
+  }
 `;
-
 
 interface AgreementData {
   _id: string;
@@ -48,9 +62,15 @@ interface AgreementData {
   agreementId: {
     _id: string;
     name: string;
-
   };
   applyGlobal: boolean;
+}
+
+interface ScheduleTax {
+  min: number;
+  max: number;
+  fee: number;
+  enhancementFee: number;
 }
 
 interface ProductData {
@@ -61,6 +81,7 @@ interface ProductData {
   defaultDutyRate: number;
   note: string;
   agreements: AgreementData[];
+  scheduleTaxes: ScheduleTax[];
   serviceTax: boolean;
   adVAT: number;
   subChapterId: {
@@ -83,13 +104,13 @@ interface ProductResponse {
 
 // Format date helper function
 const formatDate = (dateString: string) => {
-  if (!dateString) return 'N/A';
-  return new Date(dateString).toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+  if (!dateString) return "N/A";
+  return new Date(dateString).toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
@@ -100,9 +121,9 @@ export default function ProductPage({
 }) {
   const { id } = use(params);
 
-const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
+  const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
     query: GET_PRODUCT,
-      variables: { id },
+    variables: { id },
   });
 
   if (loading) {
@@ -164,7 +185,7 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
               </div>
             </div>
           </CardHeader>
-          
+
           <CardContent className="p-6 space-y-6">
             {/* Basic Information Section */}
             <div className="bg-gray-50 rounded-xl p-6">
@@ -174,7 +195,7 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                   Basic Information
                 </h3>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-1">
@@ -197,16 +218,14 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                   <p className="text-base text-gray-900">{product.HSCode}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500 mb-1">
-                    Type
-                  </p>
+                  <p className="text-sm font-medium text-gray-500 mb-1">Type</p>
                   <p className="text-base text-gray-900 capitalize">
                     {product.type || "Regular"}
                   </p>
                 </div>
               </div>
             </div>
-            
+
             {/* Duty & Tax Information */}
             <div className="bg-gray-50 rounded-xl p-6">
               <div className="flex items-center mb-4">
@@ -215,7 +234,7 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                   Duty & Tax Information
                 </h3>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-1">
@@ -229,7 +248,13 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                   <p className="text-sm font-medium text-gray-500 mb-1">
                     Service Tax
                   </p>
-                  <Badge className={`${product.serviceTax ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  <Badge
+                    className={`${
+                      product.serviceTax
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
                     {product.serviceTax ? "Applicable" : "Not Applicable"}
                   </Badge>
                 </div>
@@ -237,13 +262,11 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                   <p className="text-sm font-medium text-gray-500 mb-1">
                     Ad Valorem VAT
                   </p>
-                  <p className="text-base text-gray-900">
-                    {product.adVAT}%
-                  </p>
+                  <p className="text-base text-gray-900">{product.adVAT}%</p>
                 </div>
               </div>
             </div>
-            
+
             {/* Sub-Chapter Information */}
             {product.subChapterId && (
               <div className="bg-gray-50 rounded-xl p-6">
@@ -253,7 +276,7 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                     Sub-Chapter Information
                   </h3>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <p className="text-sm font-medium text-gray-500 mb-1">
@@ -282,22 +305,22 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                 </div>
               </div>
             )}
-            
+
             {/* Notes Section */}
             {product.note && (
               <div className="bg-gray-50 rounded-xl p-6">
                 <div className="flex items-center mb-4">
                   <FileText className="h-5 w-5 text-amber-600 mr-2" />
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Notes
-                  </h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Notes</h3>
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <p className="text-gray-700 whitespace-pre-line">{product.note}</p>
+                  <p className="text-gray-700 whitespace-pre-line">
+                    {product.note}
+                  </p>
                 </div>
               </div>
             )}
-            
+
             {/* Trade Agreements */}
             {product.agreements && product.agreements.length > 0 && (
               <div className="bg-gray-50 rounded-xl p-6">
@@ -307,18 +330,27 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                     Trade Agreements
                   </h3>
                 </div>
-                
+
                 <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
                   <table className="min-w-full divide-y divide-gray-300">
                     <thead className="bg-gray-100">
                       <tr>
-                        <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
+                        <th
+                          scope="col"
+                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900"
+                        >
                           Agreement Name
                         </th>
-                        <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
-                        Apply Globally
+                        <th
+                          scope="col"
+                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900"
+                        >
+                          Apply Globally
                         </th>
-                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        <th
+                          scope="col"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        >
                           Reduced Duty Rate
                         </th>
                       </tr>
@@ -342,7 +374,70 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                 </div>
               </div>
             )}
-            
+            {/* Schedule Taxes */}
+
+            {product.scheduleTaxes && product.scheduleTaxes.length > 0 && (
+              <div className="bg-gray-50 rounded-xl p-6">
+                <div className="flex items-center mb-4">
+                <Hash className="h-5 w-5 text-indigo-600 mr-2" />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                  Schedule Taxes
+                  </h3>
+                </div>
+
+                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-300">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900"
+                        >
+                          Min
+                        </th>
+                        <th
+                          scope="col"
+                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900"
+                        >
+                          Max
+                        </th>
+                        <th
+                          scope="col"
+                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900"
+                        >
+                          Fee
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-0 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        >
+                          enhancementFee
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                    {product.scheduleTaxes.map((scheduleTax, index) => (
+                        <tr key={index}>
+                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">
+                          {scheduleTax.min}
+                          </td>
+                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">
+                          {scheduleTax.max}
+                          </td>
+                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">
+                          {scheduleTax.fee}
+                          </td>
+                          <td className="whitespace-nowrap px-0 py-4 text-sm text-gray-900">
+                            {scheduleTax.enhancementFee}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* Timestamp Information */}
             <div className="bg-gray-50 rounded-xl p-6">
               <div className="flex items-center mb-4">
@@ -351,7 +446,7 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                   Timestamp Information
                 </h3>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-1">
@@ -373,8 +468,16 @@ const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
                   <p className="text-sm font-medium text-gray-500 mb-1">
                     Deleted At
                   </p>
-                  <p className={`text-base ${product.deletedAt ? 'text-red-600' : 'text-gray-400 italic'}`}>
-                    {product.deletedAt ? formatDate(product.deletedAt) : 'Not Deleted'}
+                  <p
+                    className={`text-base ${
+                      product.deletedAt
+                        ? "text-red-600"
+                        : "text-gray-400 italic"
+                    }`}
+                  >
+                    {product.deletedAt
+                      ? formatDate(product.deletedAt)
+                      : "Not Deleted"}
                   </p>
                 </div>
               </div>
