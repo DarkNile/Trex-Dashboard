@@ -408,7 +408,6 @@ const GET_PRODUCTS = gql`
           unitNameEn
         }
         scheduleTaxes {
-          _id
           min
           max
           fee
@@ -468,6 +467,37 @@ const SEARCH_PRODUCTS = gql`
         deletedAt
         createdAt
         updatedAt
+        agreements {
+          _id
+          reducedDutyRate
+          agreementId {
+            _id
+            name
+            note
+            deletedAt
+            createdAt
+            updatedAt
+            countryIds {
+              _id
+              nameEn
+              nameAr
+              code
+              deletedAt
+            }
+          }
+          applyGlobal
+        }
+        measurementUnit {
+          _id
+          unitNameAr
+          unitNameEn
+        }
+        scheduleTaxes {
+          min
+          max
+          fee
+          enhancementFee
+        }
         subChapterId {
           _id
           nameEn
@@ -740,6 +770,7 @@ const Page = () => {
     render?: (value: unknown, item: Product) => React.ReactNode;
   }[] = [
     { header: "HS Code", key: "HSCode" },
+    // { header:"Agreements", key: "agreements", render: (value) => (value as AgreementData[]).map((item) => item.agreementId.name).join(", ") },
     { header: "Arabic Name", key: "nameAr" },
     { header: "English Name", key: "nameEn" },
     {
