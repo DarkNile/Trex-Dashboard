@@ -440,13 +440,12 @@ const GET_CHAPTERS = gql`
 `;
 const SEARCH_PRODUCTS = gql`
   query SearchProduct(
-    $page: Int!
     $keyword: String
     $chapterId: ID
     $subChapterId: ID
   ) {
     searchProduct(
-      pageable: { page: $page }
+      pageable: { page: 1 }
       keyword: $keyword
       chapterId: $chapterId
       subChapterId: $subChapterId
@@ -597,6 +596,7 @@ type Product = ProductFromAPI & { id: string };
 
 const Page = () => {
   const router = useRouter();
+  const [currentChapterPage, setCurrentChapterPage] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchKeyword, setSearchKeyword] = useState("");
   const pageSize = 10;
@@ -676,7 +676,7 @@ const Page = () => {
   const { data: chaptersData, loading: chaptersLoading } = useGenericQuery({
     query: GET_CHAPTERS,
     variables: {
-      page: currentPage,
+      page: currentChapterPage,
     },
     onError: (error) => {
       console.error("chapters loading error:", error);
@@ -881,7 +881,7 @@ const Page = () => {
       setSelectedFilterType("subChapter");
     }
     setIsFilterDialogOpen(false);
-    setCurrentPage(1);
+    setCurrentChapterPage(1);
   };
 
   const clearFilter = () => {
@@ -890,6 +890,7 @@ const Page = () => {
     setSelectedFilterName("");
     setSelectedFilterType(null);
     setCurrentPage(1);
+    setCurrentChapterPage(1);
   };
 
   const getFilterDisplayText = () => {
