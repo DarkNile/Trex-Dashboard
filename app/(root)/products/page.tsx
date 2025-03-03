@@ -443,9 +443,10 @@ const SEARCH_PRODUCTS = gql`
     $keyword: String
     $chapterId: ID
     $subChapterId: ID
+    $page: Int!
   ) {
     searchProduct(
-      pageable: { page: 1 }
+      pageable: { page: $page }
       keyword: $keyword
       chapterId: $chapterId
       subChapterId: $subChapterId
@@ -596,7 +597,7 @@ type Product = ProductFromAPI & { id: string };
 
 const Page = () => {
   const router = useRouter();
-  const [currentChapterPage, setCurrentChapterPage] = useState(1);
+  const [currentChapterPage, setCurrentChapterPage] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchKeyword, setSearchKeyword] = useState("");
   const pageSize = 10;
@@ -770,7 +771,6 @@ const Page = () => {
     render?: (value: unknown, item: Product) => React.ReactNode;
   }[] = [
     { header: "HS Code", key: "HSCode" },
-    // { header:"Agreements", key: "agreements", render: (value) => (value as AgreementData[]).map((item) => item.agreementId.name).join(", ") },
     { header: "Arabic Name", key: "nameAr" },
     { header: "English Name", key: "nameEn" },
     {
@@ -823,15 +823,16 @@ const Page = () => {
       className: "text-green-500",
     },
   ];
+  
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
 
+
   // Handle filter selection
   const toggleSearch = () => {
     if (showFilter) {
-      // Reset filter values
       setSelectedChapterId(null);
       setSelectedSubChapterId(null);
       setSelectedFilterName("");
@@ -839,8 +840,6 @@ const Page = () => {
       setShowFilter(false);
     }
     setShowSearch(!showSearch);
-
-    // Reset search when hiding
     if (showSearch) {
       setSearchKeyword("");
     }
@@ -849,13 +848,10 @@ const Page = () => {
   // Toggle filter visibility and reset search
   const toggleFilter = () => {
     if (showSearch) {
-      // Reset search value
       setSearchKeyword("");
       setShowSearch(false);
     }
     setShowFilter(!showFilter);
-
-    // Reset filter when hiding
     if (showFilter) {
       setSelectedChapterId(null);
       setSelectedSubChapterId(null);
@@ -881,7 +877,8 @@ const Page = () => {
       setSelectedFilterType("subChapter");
     }
     setIsFilterDialogOpen(false);
-    setCurrentChapterPage(1);
+    setCurrentPage(1);
+    setCurrentChapterPage(0);
   };
 
   const clearFilter = () => {
@@ -890,7 +887,7 @@ const Page = () => {
     setSelectedFilterName("");
     setSelectedFilterType(null);
     setCurrentPage(1);
-    setCurrentChapterPage(1);
+    setCurrentChapterPage(0);
   };
 
   const getFilterDisplayText = () => {
@@ -930,111 +927,6 @@ const Page = () => {
           />
         )}
       </div>
-
-      {/* Search Bar */}
-      {/* <div className="px-8 py-4">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search by HS Code, Arabic Name, or English Name..."
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
-            className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="flex-grow">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full min-h-[40px] h-auto py-2 px-4 bg-white"
-              onClick={() => setIsFilterDialogOpen(true)}
-            >
-              <div className="flex w-full items-center gap-2">
-                <span className="flex-grow text-left whitespace-normal break-words leading-normal">
-                  {getFilterDisplayText()}
-                </span>
-                <ChevronDown className="w-4 h-4 flex-shrink-0" />
-              </div>
-            </Button>
-          </div>
-          {selectedFilterType && (
-            <Button variant="outline" onClick={clearFilter} className="ml-2">
-              Clear Filters
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>
-              Filter by Chapter/Sub-Chapter
-              {!chaptersLoading &&
-                chaptersData?.getChapters?.totalSize &&
-                ` (${chaptersData.getChapters.totalSize} total)`}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
-            {chaptersLoading ? (
-              <div className="p-4 text-center">Loading chapters...</div>
-            ) : (
-              <>
-                {chaptersData?.getChapters?.data.map((chapter: Chapter) => {
-                  const isExpanded = expandedChapter === chapter._id;
-
-                  return (
-                    <div key={chapter._id} className="border-b last:border-b-0">
-                      <div
-                        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-50"
-                        onClick={() => {
-                          if (isExpanded) {
-                            handleFilterSelect(chapter, "chapter");
-                          } else {
-                            setExpandedChapter(chapter._id);
-                          }
-                        }}
-                      >
-                        <span className="font-medium text-right flex-grow">
-                          {chapter.nameAr}
-                        </span>
-                        <ChevronDown
-                          className={`w-5 h-5 transition-transform ${
-                            isExpanded ? "rotate-180" : ""
-                          }`}
-                        />
-                      </div>
-
-                      {isExpanded && chapter.subChapters?.length > 0 && (
-                        <div className="bg-gray-50">
-                          {chapter.subChapters.map((subChapter) => (
-                            <div
-                              key={subChapter._id}
-                              className="flex items-center py-2 px-6 border-t cursor-pointer hover:bg-gray-100"
-                              onClick={() => {
-                                setSelectedChapterId(chapter._id);
-                                handleFilterSelect(subChapter, "subChapter");
-                              }}
-                            >
-                              <span className="text-right flex-grow">
-                                {subChapter.nameAr}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog> */}
-
       <div className="px-8 py-4 flex gap-4">
         <Button
           variant={showSearch ? "default" : "outline"}
@@ -1076,7 +968,12 @@ const Page = () => {
               type="text"
               placeholder="Search by HS Code, Arabic Name, or English Name..."
               value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
+              onChange={(e) => {
+                setSearchKeyword(e.target.value);
+                if (e.target.value === "") {
+                  setCurrentPage(1);
+                }}
+              }
               className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -1114,7 +1011,7 @@ const Page = () => {
 
       {/* Chapter/SubChapter Filter Dialog */}
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        {/* <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>
               Filter by Chapter/Sub-Chapter
@@ -1177,7 +1074,98 @@ const Page = () => {
               </>
             )}
           </div>
-        </DialogContent>
+        </DialogContent> */}
+        <DialogContent className="sm:max-w-[400px]">
+                  <DialogHeader>
+                    <DialogTitle>
+                      Select Chapter
+                      {!chaptersLoading &&
+                        chaptersData?.getChapters?.totalSize &&
+                        ` (${chaptersData.getChapters.totalSize} total)`}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="max-h-[60vh] overflow-y-auto">
+                    {chaptersLoading ? (
+                      <div className="p-4 text-center">Loading chapters...</div>
+                    ) : (
+                      <>
+                        {chaptersData?.getChapters?.data.map((chapter: Chapter) => {
+                          const isExpanded = expandedChapter === chapter._id;
+                          return (
+                            <div key={chapter._id} className="border-b last:border-b-0">
+                              <div
+                                className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-50"
+                                onClick={() => {
+                                  if (isExpanded) {
+                                    handleFilterSelect(chapter, "chapter");
+                                  } else {
+                                    setExpandedChapter(chapter._id);
+                                  }
+                                }}
+                              >
+                                <span className="font-medium text-right flex-grow">
+                                  {chapter.nameAr}
+                                </span>
+                                <ChevronDown
+                                  className={`w-5 h-5 transition-transform ${
+                                    isExpanded ? "rotate-180" : ""
+                                  }`}
+                                />
+                              </div>
+                              {isExpanded && chapter.subChapters?.length > 0 && (
+                                <div className="bg-gray-50">
+                                  {chapter.subChapters.map((subChapter) => (
+                                    <div
+                                      key={subChapter._id}
+                                      className="flex items-center py-2 px-6 border-t cursor-pointer hover:bg-gray-100"
+                                      onClick={() =>
+                                        handleFilterSelect(subChapter, "subChapter")
+                                      }
+                                    >
+                                      <span className="text-right flex-grow">
+                                        {subChapter.nameAr}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                        {chaptersData?.getChapters?.totalPages > 1 && (
+                          <div className="flex justify-between items-center mt-4 border-t pt-4">
+                            <Button
+                              type="button"
+                              onClick={() =>
+                                setCurrentChapterPage((prev) => Math.max(0, prev - 1))
+                              }
+                              disabled={currentChapterPage === 0}
+                              variant="outline"
+                              size="sm"
+                            >
+                              Previous
+                            </Button>
+                            <span>
+                              Page {chaptersData.getChapters.pageNumber + 1} of{" "}
+                              {chaptersData.getChapters.totalPages}
+                            </span>
+                            <Button
+                              type="button"
+                              onClick={() => setCurrentChapterPage((prev) => prev + 1)}
+                              disabled={
+                                currentChapterPage >= chaptersData.getChapters.totalPages - 1
+                              }
+                              variant="outline"
+                              size="sm"
+                            >
+                              Next
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </DialogContent>
       </Dialog>
 
       {loading ? (

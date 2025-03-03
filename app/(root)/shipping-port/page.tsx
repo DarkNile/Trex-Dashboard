@@ -67,6 +67,8 @@ const Page = () => {
       });
     },
   });
+  console.log(data);
+  
 
   const { execute: deleteShippingPort } = useGenericMutation({
     mutation: DELETE_SHIPPING_PORT,
