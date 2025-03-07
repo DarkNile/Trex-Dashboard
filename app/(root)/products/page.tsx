@@ -655,6 +655,7 @@ const Page = () => {
       // toast.error(`Error loading products: ${error.message}`);
     },
   });
+  
 
   // const { data, loading, error, refetch } = useGenericQuery({
   //   query: SEARCH_PRODUCTS,
@@ -748,6 +749,8 @@ const Page = () => {
     });
     setOpen(true);
   };
+
+
 
   // const transformedData: Product[] = (data?.searchProduct?.data || []).map(
   //   (item: ProductFromAPI) => ({

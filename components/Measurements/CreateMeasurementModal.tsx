@@ -252,6 +252,8 @@ const CreateMeasurementModal: React.FC<CreateMeasurementModalProps> = ({
 
     try {
       await createMeasurement(variables);
+      console.log(variables);
+      
     } catch (error) {
       console.error("Error creating measurement:", error);
     }

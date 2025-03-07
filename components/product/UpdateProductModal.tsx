@@ -14,6 +14,7 @@ import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
 import toast from "react-hot-toast";
 import Textarea from "../UI/textArea";
+import { useRouter } from "next/navigation";
 
 interface Chapter {
   _id: string;
@@ -152,7 +153,7 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
   } | null>(null);
   const [isAgreementDialogOpen, setIsAgreementDialogOpen] = useState(false);
   const [isScheduleTaxDialogOpen, setIsScheduleTaxDialogOpen] = useState(false);
-
+  const router = useRouter();
   const { data: agreementsData, loading: agreementsLoading } = useGenericQuery({
     query: GET_AGREEMENTS,
     variables: {
@@ -303,6 +304,8 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
     updateProduct({
       updateProductInput: updateData,
     });
+
+    router.push(`products/${productId}`);
 
     // if (changedFields.agreements) {
     //   const agreementsString = changedFields.agreements

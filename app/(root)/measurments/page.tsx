@@ -10,6 +10,9 @@ import CreateMeasurementModal from "@/components/Measurements/CreateMeasurementM
 import UpdateMeasurementModal from "@/components/Measurements/UpdateMeasurementModal";
 import AddUnitsToMeasurement from "@/components/Measurements/AddUnitsToMeasurement";
 import ArchiveMeasurementsModal from "@/components/Measurements/ArchiveMeasurementsModal";
+import RemoveUnitsFromMeasurement from "@/components/Measurements/RemoveUnits";
+import { toast } from "react-hot-toast";
+
 const GET_MEASUREMENTS = gql`
   query GetMeasurements($page: Int!) {
     measurements(filter: { deleted: false }, pageable: { page: $page }) {
@@ -54,6 +57,8 @@ const DELETE_UNITS = gql`
 `;
 
 
+//67a7a531bda4138d28f958f1
+//67a7a5ca69e039a908dedcb7
 type User = {
   _id: string;
   firstName: string;
@@ -82,6 +87,7 @@ const Page = () => {
   const pageSize = 10;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isRemoveUnitsModalOpen, setIsRemoveUnitsModalOpen] = useState(false);
   const [selectedMeasurement, setSelectedMeasurement] =
     useState<Measurement | null>(null);
 
@@ -103,6 +109,7 @@ const Page = () => {
   const { execute: deleteMeasurement } = useGenericMutation({
     mutation: DELETE_MEASUREMENT,
     onSuccess: () => {
+      toast.success("Measurement deleted successfully!");
       refetch();
     },
     onError: (error) => {
@@ -118,15 +125,26 @@ const Page = () => {
   const { execute: deleteUnits } = useGenericMutation({
     mutation: DELETE_UNITS,
     onSuccess: () => {
+      toast.success("Measurement unit deleted successfully!");
       refetch();
     },
     onError: (error) => {
       console.log("Error removing units from measurement:", error);
+      toast.error(`Error removing units from measurement: ${error.message}`);
     },
   });
 
   const handleDeleteUnits = (measurement: Measurement) => {
-    deleteUnits({ id: measurement._id });
+    const subChapterId = prompt("Enter the ID of the subunit you want to delete:");
+    
+    if (subChapterId) {
+      deleteUnits({ 
+        updateMeasurementInput: {
+          id: measurement._id,
+          subChapterIds: subChapterId
+        }
+      });
+    }
   };
 
   const handleUpdate = (measurement: Measurement) => {
@@ -243,7 +261,16 @@ const Page = () => {
           <CreateMeasurementModal onSuccess={refetch} />
           <ArchiveMeasurementsModal />
         </div>
-        
+        {isRemoveUnitsModalOpen && selectedMeasurement && (
+  <RemoveUnitsFromMeasurement
+    selectedMeasurement={selectedMeasurement}
+    onSuccess={refetch}
+    onClose={() => {
+      setSelectedMeasurement(null);
+      setIsRemoveUnitsModalOpen(false);
+    }}
+  />
+)}
 
         {selectedMeasurement && isModalOpen && (
           <UpdateMeasurementModal

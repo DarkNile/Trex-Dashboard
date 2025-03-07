@@ -1,120 +1,134 @@
+// components/Measurements/RemoveUnitsFromMeasurement.tsx
 "use client";
-import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/UI/dialog";
-import { Button } from "@/components/UI/button";
-import { Label } from "@/components/UI/label";
+
+import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
 import { gql } from "@apollo/client";
+import { Button } from "@/components/UI/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/UI/dialog";
+import { useState, useEffect } from "react";
+import { Label } from "@/components/UI/label";
 
-const GET_UNITS_BY_MEASUREMENT = gql`
-  query GetUnitsByMeasurement($id: ID!) {
-    unitsByMeasurement(id: $id) {
+const REMOVE_UNITS_FROM_MEASUREMENT = gql`
+  mutation RemoveUnitsFromMeasurement($updateMeasurementInput: UpdateMeasurementInput!) {
+    removeUnitsFromMeasurement(updateMeasurementInput: $updateMeasurementInput) {
       _id
-      nameEn
-      nameAr
     }
   }
 `;
 
-type Unit = {
-  _id: string;
-  nameEn: string;
-  nameAr: string;
-};
-
-type Measurement = {
-  id: string;
-  _id: string;
-  unitNameEn: string;
-  unitNameAr: string;
-};
+const GET_MEASUREMENT_UNITS = gql`
+  query GetMeasurementUnits($id: ID!) {
+    measurement(id: $id) {
+      _id
+      units {
+        _id
+        name
+      }
+    }
+  }
+`;
 
 type RemoveUnitsFromMeasurementProps = {
-  selectedMeasurement: Measurement;
+  selectedMeasurement: any;
   onSuccess: () => void;
   onClose: () => void;
-  onRemoveUnits: (measurementId: string, subChapterIds: string) => void;
 };
 
 const RemoveUnitsFromMeasurement = ({
   selectedMeasurement,
   onSuccess,
   onClose,
-  onRemoveUnits,
 }: RemoveUnitsFromMeasurementProps) => {
-  const [selectedUnit, setSelectedUnit] = useState<string>("");
+  const [units, setUnits] = useState<{ _id: string; name: string }[]>([]);
+  const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { data, loading, error } = useGenericQuery({
-    query: GET_UNITS_BY_MEASUREMENT,
+  // يمكنك استخدام هذا لجلب الوحدات إذا كانت متوفرة
+  /*
+  const { data, loading } = useGenericQuery({
+    query: GET_MEASUREMENT_UNITS,
     variables: {
       id: selectedMeasurement._id,
+    },
+    onCompleted: (data) => {
+      if (data?.measurement?.units) {
+        setUnits(data.measurement.units);
+      }
     },
     onError: (error) => {
       console.log("Error fetching units:", error);
     },
   });
+  */
 
-  const units: Unit[] = data?.unitsByMeasurement || [];
-
-  const handleRemove = () => {
-    if (selectedUnit) {
-      onRemoveUnits(selectedMeasurement._id, selectedUnit);
+  const { execute: removeUnits } = useGenericMutation({
+    mutation: REMOVE_UNITS_FROM_MEASUREMENT,
+    onSuccess: () => {
       onSuccess();
-    }
+      onClose();
+    },
+    onError: (error) => {
+      console.log("Error removing units:", error);
+      setIsLoading(false);
+    },
+  });
+
+  const handleRemoveUnits = () => {
+    if (selectedUnits.length === 0) return;
+    
+    setIsLoading(true);
+    removeUnits({
+      updateMeasurementInput: {
+        id: selectedMeasurement._id,
+        subChapterIds: selectedUnits.join(",")
+      }
+    });
+  };
+
+  const toggleUnitSelection = (unitId: string) => {
+    setSelectedUnits((prev) =>
+      prev.includes(unitId)
+        ? prev.filter((id) => id !== unitId)
+        : [...prev, unitId]
+    );
   };
 
   return (
-    <Dialog open={true} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            Remove units from measurement: {selectedMeasurement.unitNameAr} ({selectedMeasurement.unitNameEn})
-          </DialogTitle>
+          <DialogTitle>إزالة الوحدات من المقياس</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          {loading ? (
-            <p>Loading ...</p>
-          ) : error ? (
-            <p className="text-red-500">An error occurred while fetching units.</p>
-          ) : units.length === 0 ? (
-            <p>There are no units to remove.</p>
-          ) : (
-            <div className="grid gap-2">
-              <Label htmlFor="unit">choose unit to remove:</Label>
-              <select
-                id="unit"
-                value={selectedUnit}
-                onChange={(e) => setSelectedUnit(e.target.value)}
+          <div className="space-y-2">
+            <h3 className="text-lg font-medium">
+              اختر الوحدات التي تريد إزالتها من "{selectedMeasurement.unitNameAr}"
+            </h3>
+            
+            {/* استخدام ادخال نصي بسيط بدلاً من الاختيارات المتعددة */}
+            <div className="space-y-2">
+              <Label htmlFor="unitIds">أدخل معرفات الوحدات (مفصولة بفواصل)</Label>
+              <input
+                id="unitIds"
                 className="w-full p-2 border rounded"
-              >
-                <option value="">choose unit ...</option>
-                {units.map((unit) => (
-                  <option key={unit._id} value={unit._id}>
-                    {unit.nameAr} ({unit.nameEn})
-                  </option>
-                ))}
-              </select>
+                placeholder="مثال: id1,id2,id3"
+                onChange={(e) => setSelectedUnits(e.target.value.split(',').map(id => id.trim()).filter(id => id))}
+              />
             </div>
-          )}
+          </div>
         </div>
-        <DialogFooter>
+        <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            إلغاء
           </Button>
-          <Button
-            onClick={handleRemove}
-            disabled={!selectedUnit || loading}
-            className="bg-red-500 text-white hover:bg-red-600"
+          <Button 
+            onClick={handleRemoveUnits} 
+            disabled={selectedUnits.length === 0 || isLoading}
           >
-            Remove Unit
+            {isLoading ? "جارٍ الحذف..." : "حذف الوحدات"}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -15,6 +15,8 @@ import { Button } from "../UI/button";
 import { Label } from "../UI/label";
 import { Input } from "../UI/input";
 import Textarea from "../UI/textArea";
+import { useRouter } from "next/navigation";
+
 interface Chapter {
   _id: string;
   nameEn: string;
@@ -50,6 +52,9 @@ interface CreateFormData {
   type: "regural" | "car";
   scheduleTaxes: ScheduleTax[];
 }
+
+
+
 
 const GET_CHAPTERS = gql`
   query GetChapters($page: Int!) {
@@ -121,6 +126,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     type: "regural",
     scheduleTaxes: [],
   });
+  const router = useRouter();
   const { data: chaptersData, loading: chaptersLoading } = useGenericQuery({
     query: GET_CHAPTERS,
     variables: {
@@ -141,6 +147,9 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       toast.error(`Error loading agreements: ${error.message}`);
     },
   });
+
+
+  
   const { execute: createProduct, isLoading } = useGenericMutation({
     mutation: CREATE_PRODUCT,
     onSuccess: () => {
@@ -189,7 +198,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
         max: Number(tax.max),
         fee: Number(tax.fee),
         enhancementFee: Number(tax.enhancementFee)
-      }))
+      })),
     };
 
     console.log("Mutation Input:", {
