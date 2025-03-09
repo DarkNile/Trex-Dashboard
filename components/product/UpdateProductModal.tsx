@@ -50,7 +50,8 @@ interface ProductData {
   HSCode: string;
   nameEn: string;
   nameAr: string;
-  note: string;
+  noteEn: string;
+  noteAr: string;
   defaultDutyRate: number;
   agreements: AgreementData[];
   subChapterId: string;
@@ -563,11 +564,20 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="note">Note</Label>
+              <Label htmlFor="noteAr">Arabic Note</Label>
               <Textarea
-                id="note"
-                name="note"
-                value={formData.note}
+                id="noteAr"
+                name="noteAr"
+                value={formData.noteAr}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="noteEn">English Note</Label>
+              <Textarea
+                id="noteEn"
+                name="noteEn"
+                value={formData.noteEn}
                 onChange={handleInputChange}
               />
             </div>
