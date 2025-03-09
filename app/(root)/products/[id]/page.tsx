@@ -21,7 +21,8 @@ const GET_PRODUCT = gql`
       HSCode
       nameEn
       nameAr
-      note
+      noteEn
+      noteAr
       defaultDutyRate
       serviceTax
       adVAT
@@ -79,7 +80,8 @@ interface ProductData {
   nameEn: string;
   nameAr: string;
   defaultDutyRate: number;
-  note: string;
+  noteEn: string;
+  noteAr: string;
   agreements: AgreementData[];
   scheduleTaxes: ScheduleTax[];
   serviceTax: boolean;
@@ -307,15 +309,28 @@ export default function ProductPage({
             )}
 
             {/* Notes Section */}
-            {product.note && (
+            {product.noteAr && (
               <div className="bg-gray-50 rounded-xl p-6">
                 <div className="flex items-center mb-4">
                   <FileText className="h-5 w-5 text-amber-600 mr-2" />
-                  <h3 className="text-lg font-semibold text-gray-900">Notes</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Arabic Notes</h3>
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-gray-200">
                   <p className="text-gray-700 whitespace-pre-line">
-                    {product.note}
+                    {product.noteAr}
+                  </p>
+                </div>
+              </div>
+            )}
+            {product.noteEn && (
+              <div className="bg-gray-50 rounded-xl p-6">
+                <div className="flex items-center mb-4">
+                  <FileText className="h-5 w-5 text-amber-600 mr-2" />
+                  <h3 className="text-lg font-semibold text-gray-900">English Notes</h3>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                  <p className="text-gray-700 whitespace-pre-line">
+                    {product.noteEn}
                   </p>
                 </div>
               </div>

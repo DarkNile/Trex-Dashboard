@@ -193,7 +193,8 @@ const DELETE_PRODUCT = gql`
       HSCode
       nameEn
       nameAr
-      note
+      noteEn
+      noteAr
       defaultDutyRate
       serviceTax
       adVAT

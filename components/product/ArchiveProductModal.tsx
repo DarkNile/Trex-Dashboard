@@ -27,7 +27,8 @@ const GET_PRODUCTS = gql`
         HSCode
         nameEn
         nameAr
-        note
+        noteEn
+        noteAr
         defaultDutyRate
         serviceTax
         adVAT
@@ -82,7 +83,8 @@ mutation HardDeleteProduct($id: String!) {
         HSCode
         nameEn
         nameAr
-        note
+        noteEn
+        noteAr
         defaultDutyRate
         serviceTax
         adVAT
@@ -100,7 +102,8 @@ mutation RestoreProduct($id: String!) {
         HSCode
         nameEn
         nameAr
-        note
+        noteEn
+        noteAr
         defaultDutyRate
         serviceTax
         adVAT
@@ -117,7 +120,8 @@ type ProductFromAPI = {
     HSCode: string;
     nameEn: string;
     nameAr: string;
-    note: string;
+    noteEn: string;
+    noteAr: string;
     defaultDutyRate: number;
     serviceTax: boolean;
     adVAT: number;
@@ -261,8 +265,13 @@ type ProductFromAPI = {
       render: (_, item) => item.measurementUnit?.unitNameEn || "N/A",
     },
     {
-      header: "Note",
-      key: "note",
+      header: "Arabic Note",
+      key: "noteAr",
+      render: (value) => `${value}` || "N/A",
+    },
+    {
+      header: "English Note",
+      key: "noteEn",
       render: (value) => `${value}` || "N/A",
     },
   ];
