@@ -14,7 +14,8 @@ import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
 import toast from "react-hot-toast";
 import Textarea from "../UI/textArea";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { saveListState, useFindProductPage } from "@/hooks/generic/findProductPage";
 
 interface Chapter {
   _id: string;
@@ -155,6 +156,8 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
   const [isAgreementDialogOpen, setIsAgreementDialogOpen] = useState(false);
   const [isScheduleTaxDialogOpen, setIsScheduleTaxDialogOpen] = useState(false);
   const router = useRouter();
+  const findProductPage = useFindProductPage();
+  const searchParams = useSearchParams();
   const { data: agreementsData, loading: agreementsLoading } = useGenericQuery({
     query: GET_AGREEMENTS,
     variables: {
@@ -307,39 +310,60 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
     });
 
     router.push(`products/${productId}`);
-
-    // if (changedFields.agreements) {
-    //   const agreementsString = changedFields.agreements
-    //     .map(agreement => `{agreementId:'${agreement.agreementId._id}',reducedDutyRate:${agreement.reducedDutyRate},applyGlobal:${agreement.applyGlobal}}`)
-    //     .join(',');
-
-    //   const productUpdateData = { ...updateData };
-    //   delete productUpdateData.agreements;
-
-    //   updateProduct({
-    //     updateProductInput: productUpdateData,
-    //   }).then(() => {
-    //     updateAgreements({
-    //       addNewAgreementInput: {
-    //         id: productId,
-    //         agreements: agreementsString
-    //       }
-    //     }).then(() => {
-    //       toast.success("Product and agreements updated successfully! ✅");
-    //       onSuccess?.();
-    //       onClose();
-    //     }).catch((error) => {
-    //       toast.error(`Error updating agreements: ${error.message}`);
-    //     });
-    //   }).catch((error) => {
-    //     toast.error(`Error updating product: ${error.message}`);
-    //   });
-    // } else {
-    //   updateProduct({
-    //     updateProductInput: updateData,
-    //   });
-    // }
   };
+
+  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   if (Object.keys(changedFields).length === 0) {
+  //     toast("No changes detected");
+  //     return;
+  //   }
+    
+  //   const formattedAgreements = formData.agreements.map((agreement) => ({
+  //     agreementId: agreement.agreementId._id,
+  //     reducedDutyRate: agreement.reducedDutyRate,
+  //     applyGlobal: agreement.applyGlobal || false,
+  //   }));
+
+  //   const updateData = {
+  //     id: productId,
+  //     ...changedFields,
+  //     agreements: formattedAgreements,
+  //     scheduleTaxes: formData.scheduleTaxes,
+  //   };
+    
+  //   try {
+  //     await updateProduct({
+  //       updateProductInput: updateData,
+  //     });
+      
+  //     // بعد التحديث بنجاح، نقوم بإيجاد الصفحة التي يوجد بها المنتج
+  //     const searchFilters = {
+  //       keyword: searchParams.get('keyword') || "",
+  //       chapterId: searchParams.get('chapterId') || null,
+  //       subChapterId: searchParams.get('subChapterId') || null,
+  //     };
+      
+  //     const productPage = await findProductPage(productId, searchFilters);
+      
+  //     // حفظ الصفحة المناسبة في التخزين المؤقت
+  //     saveListState({
+  //       page: productPage,
+  //       ...searchFilters,
+  //     });
+      
+  //     // إغلاق الـmodal
+  //     onSuccess?.();
+  //     onClose();
+      
+  //     // تحديث الصفحة للانتقال إلى الصفحة المناسبة
+  //     window.location.href = '/products';
+      
+  //   } catch (error) {
+  //     console.error("Error updating product:", error);
+  //     toast.error(`Error updating product: ${error}`);
+  //   }
+  // };
 
   const handleAddScheduleTax = () => {
     setFormData((prev) => {

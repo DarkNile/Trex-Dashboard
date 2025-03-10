@@ -11,8 +11,11 @@ import {
   Calendar,
   Hash,
   Info,
+  ArrowLeft,
 } from "lucide-react";
 import { Badge } from "@/components/UI/badge";
+import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@/components/UI/button";
 
 const GET_PRODUCT = gql`
   query Product($id: ID!) {
@@ -122,7 +125,8 @@ export default function ProductPage({
   readonly params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-
+  const router = useRouter();
+  const pathname = usePathname();
   const { data, loading, error, refetch } = useGenericQuery<ProductResponse>({
     query: GET_PRODUCT,
     variables: { id },
@@ -158,9 +162,16 @@ export default function ProductPage({
 
   const { product } = data;
 
+  const handleBackToList = () => {
+    router.push('/products');
+  };
+
   return (
     <div className="bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <Button onClick={handleBackToList} className="mb-4">
+        <ArrowLeft className="mr-2 h-4 w-4" />Back
+      </Button>
         {/* Main Product Info Card */}
         <Card className="mb-8 bg-white shadow-lg border-none">
           <CardHeader className="bg-white border-b border-gray-100">

@@ -3,14 +3,14 @@
 import { useGenericQuery } from "@/hooks/generic/useGenericQuery";
 import { gql } from "@apollo/client";
 import React, { useEffect, useState } from "react";
-import { EyeIcon, Pen, Trash, Search, ChevronDown, Filter } from "lucide-react";
+import { EyeIcon, Pen, Trash, Search, ChevronDown, Filter, RefreshCcw } from "lucide-react";
 import GenericTable from "@/components/UI/Table/GenericTable";
 import Pagination from "@/components/UI/pagination/Pagination";
 import { useGenericMutation } from "@/hooks/generic/useGenericMutation";
 import CreateProductModal from "@/components/product/CreateProductModal";
 import UpdateProductModal from "@/components/product/UpdateProductModal";
 import ArchiveProductModal from "@/components/product/ArchiveProductModal";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { Button } from "@/components/UI/button";
 import {
@@ -19,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/UI/dialog";
+import { getListState, saveListState, useFindProductPage } from "@/hooks/generic/findProductPage";
 
 const GET_PRODUCTS = gql`
   query AllProducts($page: Int!) {
@@ -275,9 +276,29 @@ type Product = ProductFromAPI & { id: string };
 
 const Page = () => {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [currentChapterPage, setCurrentChapterPage] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchKeyword, setSearchKeyword] = useState("");
+  // const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const pageParam = searchParams.get('page');
+    if (pageParam) {
+      return parseInt(pageParam);
+    }
+    
+    const savedState = getListState();
+    return savedState.page || 1;
+  });
+  // const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState(() => {
+    const keywordParam = searchParams.get('keyword');
+    if (keywordParam) {
+      return keywordParam;
+    }
+    
+    const savedState = getListState();
+    return savedState.keyword || "";
+  });
   const pageSize = 10;
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     null
@@ -298,12 +319,34 @@ const Page = () => {
     scheduleTaxes: [],
   });
   const [open, setOpen] = useState(false);
-  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(
-    null
-  );
-  const [selectedSubChapterId, setSelectedSubChapterId] = useState<
-    string | null
-  >(null);
+  // const [selectedChapterId, setSelectedChapterId] = useState<string | null>(
+  //   null
+  // );
+  // const [selectedSubChapterId, setSelectedSubChapterId] = useState<
+  //   string | null
+  // >(null);
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(() => {
+    const chapterParam = searchParams.get('chapterId');
+    if (chapterParam) {
+      return chapterParam;
+    }
+    
+    const savedState = getListState();
+    return savedState.chapterId || null;
+  });
+  
+  const [selectedSubChapterId, setSelectedSubChapterId] = useState<string | null>(() => {
+    const subChapterParam = searchParams.get('subChapterId');
+    if (subChapterParam) {
+      return subChapterParam;
+    }
+    
+    const savedState = getListState();
+    return savedState.subChapterId || null;
+  });
+  
+  // إضافة الهوك الجديد
+  const findProductPage = useFindProductPage();
   const [selectedFilterName, setSelectedFilterName] = useState<string>("");
   const [selectedFilterType, setSelectedFilterType] = useState<
     "chapter" | "subChapter" | null
@@ -311,6 +354,33 @@ const Page = () => {
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
+
+  useEffect(() => {
+    saveListState({
+      page: currentPage,
+      keyword: searchKeyword,
+      chapterId: selectedChapterId,
+      subChapterId: selectedSubChapterId,
+    });
+    
+    // تحديث الـURL
+    const params = new URLSearchParams();
+    if (currentPage > 1) {
+      params.set('page', currentPage.toString());
+    }
+    if (searchKeyword) {
+      params.set('keyword', searchKeyword);
+    }
+    if (selectedChapterId) {
+      params.set('chapterId', selectedChapterId);
+    }
+    if (selectedSubChapterId) {
+      params.set('subChapterId', selectedSubChapterId);
+    }
+    
+    const newUrl = pathname + (params.toString() ? `?${params.toString()}` : '');
+    window.history.replaceState({}, '', newUrl);
+  }, [currentPage, searchKeyword, selectedChapterId, selectedSubChapterId]);
 
   const hasSearchOrFilter =
     searchKeyword || selectedChapterId || selectedSubChapterId;
@@ -503,10 +573,25 @@ const Page = () => {
       className: "text-blue-500",
       icon: <Pen className="w-4 h-4" />,
     },
+    // {
+    //   label: "View Product",
+    //   onClick: (item: Product) => {
+    //     router.push(`products/${item._id}`);
+    //   },
+    //   icon: <EyeIcon className="w-4 h-4" />,
+    //   className: "text-green-500",
+    // },
     {
       label: "View Product",
       onClick: (item: Product) => {
-        router.push(`products/${item._id}`);
+        saveListState({
+          page: currentPage,
+          keyword: searchKeyword,
+          chapterId: selectedChapterId,
+          subChapterId: selectedSubChapterId,
+        });
+        
+        router.push(`/products/${item._id}`);
       },
       icon: <EyeIcon className="w-4 h-4" />,
       className: "text-green-500",
@@ -514,8 +599,18 @@ const Page = () => {
   ];
   
 
+  // const handlePageChange = (newPage: number) => {
+  //   setCurrentPage(newPage);
+  // };
+
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
+    saveListState({
+      page: newPage,
+      keyword: searchKeyword,
+      chapterId: selectedChapterId,
+      subChapterId: selectedSubChapterId,
+    });
   };
 
 
@@ -592,6 +687,18 @@ const Page = () => {
     ? data?.searchProduct
     : data?.allProducts;
 
+    const Reset = () => {
+      setCurrentPage(1);
+      setCurrentChapterPage(0);
+      setShowSearch(false);
+      setShowFilter(false);
+      setSearchKeyword("");
+      setSelectedChapterId(null);
+      setSelectedSubChapterId(null);
+      setSelectedFilterName("");
+      setSelectedFilterType(null);
+    };
+
   return (
     <div className="">
       <div className="flex justify-between items-start px-8 pt-8 mt-5">
@@ -634,13 +741,15 @@ const Page = () => {
           <Filter className="h-5 w-5" />
           Filter
         </Button>
+        
 
-        {(showSearch && searchKeyword) || (showFilter && selectedFilterType) ? (
+        {(showSearch && searchKeyword) || (showFilter && selectedFilterType) || searchKeyword || selectedChapterId || selectedSubChapterId ? (
           <Button
             variant="outline"
             onClick={() => {
               setSearchKeyword("");
               clearFilter();
+              Reset();
             }}
             className="ml-auto"
           >
