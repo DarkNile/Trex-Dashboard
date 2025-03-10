@@ -1,6 +1,8 @@
+"use client";
 import { gql, useApolloClient } from '@apollo/client';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { useRouter as useNextRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 const GET_PRODUCTS = gql`
   query AllProducts($page: Int!) {
     allProducts(pageable: { page: $page }, deleted: { deleted: false }) {
@@ -205,41 +207,13 @@ type ProductFromAPI = {
     };
     applyGlobal: boolean;
   }
-  
-  interface ProductData {
-    HSCode: string;
-    nameEn: string;
-    nameAr: string;
-    noteEn: string;
-    noteAr: string;
-    defaultDutyRate: number;
-    agreements: AgreementData[];
-    scheduleTaxes: ScheduleTax[];
-    serviceTax: boolean;
-    adVAT: number;
-    subChapterId: string;
-    type: "regural" | "car";
-  }
-  
-  interface Chapter {
-    _id: string;
-    nameEn: string;
-    nameAr: string;
-    subChapters: SubChapter[];
-  }
-  
-  interface SubChapter {
-    _id: string;
-    nameEn: string;
-    nameAr: string;
-  }
-  
-  type Product = ProductFromAPI & { id: string };
+
+
 // افتراض: كل صفحة تحتوي على 10 منتجات (يمكن تغيير هذا الرقم حسب التكوين الخاص بك)
 const STORAGE_KEY = 'product-list-state';
 
-// افتراض: كل صفحة تحتوي على 10 منتجات (يمكن تغيير هذا الرقم حسب التكوين الخاص بك)
-const ITEMS_PER_PAGE = 10;
+const isBrowser = typeof window !== "undefined";
+
 // نخلق هوك جديد لإيجاد الصفحة التي يتواجد فيها المنتج
 export const saveListState = (state: {
     page: number;
@@ -247,26 +221,38 @@ export const saveListState = (state: {
     chapterId?: string | null;
     subChapterId?: string | null;
   }) => {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (isBrowser) {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
   };
   
   export const getListState = () => {
-    const stateStr = sessionStorage.getItem(STORAGE_KEY);
-    if (!stateStr) {
+    if (!isBrowser) {
       return { page: 1 };
     }
-    return JSON.parse(stateStr);
+    const stateStr = sessionStorage.getItem(STORAGE_KEY);
+    // if (!stateStr) {
+    //   return { page: 1 };
+    // }
+    // return JSON.parse(stateStr);
+    return stateStr ? JSON.parse(stateStr) : { page: 1 };
   };
   
   // نخلق هوك جديد لإيجاد الصفحة التي يتواجد فيها المنتج
   export const useFindProductPage = () => {
     const client = useApolloClient();
+    const [isClient, setIsClient] = useState(false);
     
+    useEffect(() => {
+      setIsClient(true);
+    }, []);
+  
     return async (productId: string, searchParams?: {
       keyword?: string;
       chapterId?: string | null;
       subChapterId?: string | null;
     }) => {
+      if (!isClient) return 1;
       // استخدام نفس الاستعلام الذي تستخدمه للبحث
       const query = searchParams?.keyword || searchParams?.chapterId || searchParams?.subChapterId 
         ? SEARCH_PRODUCTS 
