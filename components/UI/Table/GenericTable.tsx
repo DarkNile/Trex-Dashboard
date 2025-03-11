@@ -43,50 +43,50 @@ const GenericTable = <T extends { id: string | number }>({
 
   return (
     <div className="pb-4 overflow-x-auto w-[100%]">
-      <div className=" p-6">
+      <div className="p-6">
         {(title || subtitle) && (
           <div className="mb-6">
             {title && (
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                 {title}
               </h1>
             )}
             {subtitle && (
-              <p className="text-sm text-gray-600 mt-2">{subtitle}</p>
+              <p className="text-sm text-muted-foreground mt-2">{subtitle}</p>
             )}
           </div>
         )}
-
-        <div className="overflow-x-auto relative border border-gray-200 rounded-lg">
+  
+        <div className="overflow-x-auto relative border border-border rounded-lg z-0">
           {/* Add loading overlay */}
           {isLoading ? (
             <TableSkeleton columnCount={5} rowCount={10} hasActions={true} />
           ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted">
                 <tr>
                   {columns.map((column) => (
                     <th
                       key={String(column.key)}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                     >
                       {column.header}
                     </th>
                   ))}
                   {actions && actions.length > 0 && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Actions
                     </th>
                   )}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-border">
                 {data.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
+                  <tr key={item.id} className="hover:bg-muted">
                     {columns.map((column) => (
                       <td
                         key={String(column.key)}
-                        className="px-6 py-4 text-sm text-gray-500 whitespace-normal break-words leading-normal min-w-[250px]"
+                        className="px-6 py-4 text-sm text-card-foreground whitespace-normal break-words leading-normal min-w-[250px]"
                       >
                         {column.render
                           ? column.render(item[column.key], item)
@@ -94,7 +94,7 @@ const GenericTable = <T extends { id: string | number }>({
                       </td>
                     ))}
                     {actions && actions.length > 0 && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         <div className="flex space-x-2">
                           {actions.map((action) => (
                             <button
@@ -102,7 +102,7 @@ const GenericTable = <T extends { id: string | number }>({
                               onClick={() => action.onClick(item)}
                               className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium ${
                                 action.className ??
-                                "text-blue-600 hover:text-blue-800"
+                                "text-primary hover:text-primary/80"
                               }`}
                             >
                               {action.icon && (

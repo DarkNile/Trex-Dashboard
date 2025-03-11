@@ -322,7 +322,7 @@ const Page = () => {
   return (
     <div className="">
       <div className="flex justify-between items-center mb-3 px-8 pt-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
           Cars
         </h1>
         <CreateCarModal onSuccess={refetch} />

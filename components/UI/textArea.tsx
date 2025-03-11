@@ -22,7 +22,7 @@ const Textarea: React.FC<TextareaProps> = ({ id, name, value, onChange, rows = 4
       value={value}
       onChange={handleChange}
       rows={rows}
-      className={`w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
+      className={`bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
     />
   );
 };

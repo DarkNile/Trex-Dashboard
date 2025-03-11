@@ -145,14 +145,13 @@
 
 
 
-// في ملف Pagination.tsx أو مكون Pagination
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
   totalItems: number;
   pageSize: number;
   onPageChange: (page: number) => void;
-  availablePages?: number[]; // إضافة هذه الخاصية
+  availablePages?: number[];
 }
 
 const Pagination = ({
@@ -163,31 +162,24 @@ const Pagination = ({
   onPageChange,
   availablePages,
 }: PaginationProps) => {
-  // استخدام قائمة الصفحات المتاحة إذا كانت موجودة
   const pagesToShow = availablePages || Array.from(
     { length: totalPages },
     (_, i) => i + 1
   );
   
-  // إنشاء قائمة محدودة من الصفحات للعرض
   const getVisiblePages = () => {
-    // إذا كان العدد صغيرًا، اعرض كل الصفحات
     if (pagesToShow.length <= 7) {
       return pagesToShow;
     }
     
-    // العرض المحدود للصفحات
     const currentIndex = pagesToShow.indexOf(currentPage);
     if (currentIndex === -1) return pagesToShow.slice(0, 7);
     
     if (currentIndex < 3) {
-      // نحن في بداية القائمة
       return [...pagesToShow.slice(0, 5), "...", pagesToShow[pagesToShow.length - 1]];
     } else if (currentIndex > pagesToShow.length - 4) {
-      // نحن في نهاية القائمة
       return [pagesToShow[0], "...", ...pagesToShow.slice(pagesToShow.length - 5)];
     } else {
-      // نحن في وسط القائمة
       return [
         pagesToShow[0],
         "...",
@@ -204,7 +196,7 @@ const Pagination = ({
   
   return (
     <div className="flex justify-between items-center p-4">
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-muted-foreground">
         {`Show ${((currentPage - 1) * pageSize) + 1} to ${
           Math.min(currentPage * pageSize, totalItems)
         } from ${totalItems}`}
@@ -214,7 +206,7 @@ const Pagination = ({
         <button
           onClick={() => onPageChange(pagesToShow[0])}
           disabled={currentPage === pagesToShow[0]}
-          className="px-3 py-1 rounded bg-gray-100 disabled:opacity-50"
+          className="px-3 py-1 rounded bg-secondary text-secondary-foreground disabled:opacity-50"
         >
           First
         </button>
@@ -227,20 +219,22 @@ const Pagination = ({
             }
           }}
           disabled={currentPage === pagesToShow[0]}
-          className="px-3 py-1 rounded bg-gray-100 disabled:opacity-50"
+          className="px-3 py-1 rounded bg-secondary text-secondary-foreground disabled:opacity-50"
         >
           Previous
         </button>
         
         {visiblePages.map((page, index) => 
           page === "..." ? (
-            <span key={`ellipsis-${index}`} className="px-3 py-1">...</span>
+            <span key={`ellipsis-${index}`} className="px-3 py-1 text-foreground">...</span>
           ) : (
             <button
               key={`page-${page}`}
               onClick={() => onPageChange(page as number)}
               className={`px-3 py-1 rounded ${
-                page === currentPage ? "bg-blue-500 text-white" : "bg-gray-100"
+                page === currentPage 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-secondary text-secondary-foreground"
               }`}
             >
               {page}
@@ -256,7 +250,7 @@ const Pagination = ({
             }
           }}
           disabled={currentPage === pagesToShow[pagesToShow.length - 1]}
-          className="px-3 py-1 rounded bg-gray-100 disabled:opacity-50"
+          className="px-3 py-1 rounded bg-secondary text-secondary-foreground disabled:opacity-50"
         >
           Next
         </button>
@@ -264,7 +258,7 @@ const Pagination = ({
         <button
           onClick={() => onPageChange(pagesToShow[pagesToShow.length - 1])}
           disabled={currentPage === pagesToShow[pagesToShow.length - 1]}
-          className="px-3 py-1 rounded bg-gray-100 disabled:opacity-50"
+          className="px-3 py-1 rounded bg-secondary text-secondary-foreground disabled:opacity-50"
         >
           Last
         </button>

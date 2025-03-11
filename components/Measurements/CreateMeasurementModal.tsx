@@ -99,6 +99,71 @@ const GET_SUBCHAPTERS = gql`
 //   }
 // `;
 
+// const GET_PRODUCTS = gql`
+//   query AllProducts{
+//     allProducts(deleted: { deleted: false }) {
+//       totalSize
+//       totalPages
+//       pageSize
+//       pageNumber
+//       data {
+//         _id
+//         HSCode
+//         nameEn
+//         nameAr
+//         noteAr
+//         noteEn
+//         defaultDutyRate
+//         serviceTax
+//         adVAT
+//         deletedAt
+//         createdAt
+//         updatedAt
+//         agreements {
+//           _id
+//           reducedDutyRate
+//           agreementId {
+//             _id
+//             name
+//             note
+//             deletedAt
+//             createdAt
+//             updatedAt
+//             countryIds {
+//               _id
+//               nameEn
+//               nameAr
+//               code
+//               deletedAt
+//             }
+//           }
+//           applyGlobal
+//         }
+//         subChapterId {
+//           _id
+//           nameEn
+//           nameAr
+//           deletedAt
+//           createdAt
+//           updatedAt
+//           chapterId {
+//             _id
+//             nameEn
+//             nameAr
+//             deletedAt
+//             createdAt
+//             updatedAt
+//           }
+//         }
+//         measurementUnit {
+//           _id
+//           unitNameAr
+//           unitNameEn
+//         }
+//       }
+//     }
+//   }
+// `;
 const GET_PRODUCTS = gql`
   query AllProducts{
     allProducts(deleted: { deleted: false }) {
@@ -111,7 +176,8 @@ const GET_PRODUCTS = gql`
         HSCode
         nameEn
         nameAr
-        note
+        noteEn
+        noteAr
         defaultDutyRate
         serviceTax
         adVAT
@@ -159,6 +225,12 @@ const GET_PRODUCTS = gql`
           unitNameAr
           unitNameEn
         }
+        scheduleTaxes {
+          min
+          max
+          fee
+          enhancementFee
+        }
       }
     }
   }
@@ -196,11 +268,13 @@ const CreateMeasurementModal: React.FC<CreateMeasurementModalProps> = ({
     query: GET_SUBCHAPTERS,
   });
 
-  const { data: productsData } = useGenericQuery<{
+  const { data: productsData , loading: productsLoading } = useGenericQuery<{
     allProducts: { data: Product[] };
   }>({
     query: GET_PRODUCTS,
   });
+  console.log("Product data : " + JSON.stringify( productsData ));
+  
 
   const { execute: createMeasurement, isLoading } = useGenericMutation<
     { createMeasurement: boolean },
@@ -295,6 +369,7 @@ const CreateMeasurementModal: React.FC<CreateMeasurementModalProps> = ({
     }),
     option: (base, state) => ({
       ...base,
+      color:"#0f172a",
       backgroundColor: state.isSelected
         ? "#0f172a"
         : state.isFocused
@@ -387,7 +462,11 @@ const CreateMeasurementModal: React.FC<CreateMeasurementModalProps> = ({
 
           <div className="space-y-2">
             <Label>Products</Label>
-            <Select<SelectOption, true>
+            {
+              productsLoading? (
+                <div>Loading products...</div>
+              ) : (
+                <Select<SelectOption, true>
               isMulti
               options={productOptions}
               styles={selectStyles}
@@ -398,7 +477,11 @@ const CreateMeasurementModal: React.FC<CreateMeasurementModalProps> = ({
                   productIds: selected?.map((option) => option.value) || [],
                 }))
               }
+              noOptionsMessage={()=> "No options available"}
             />
+              )
+            }
+            
           </div>
 
           <div className="flex justify-end gap-2">

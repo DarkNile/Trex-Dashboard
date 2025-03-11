@@ -632,7 +632,7 @@ export default function ShippingPortPage({
               </div>
             </div>
           </CardContent>
-        </Card> 
+        </Card>
       </div>
     </div>
   );

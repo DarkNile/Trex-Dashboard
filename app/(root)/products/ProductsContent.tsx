@@ -728,7 +728,7 @@ const ProductsContent = () => {
   return (
     <div className="">
       <div className="flex justify-between items-start px-8 pt-8 mt-5">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
           Products
         </h1>
         <div className="flex flex-col items-center">
@@ -798,9 +798,9 @@ const ProductsContent = () => {
                   setCurrentPage(1);
                 }}
               }
-              className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 pl-10 pr-4 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
           </div>
         </div>
       )}
@@ -813,11 +813,11 @@ const ProductsContent = () => {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full min-h-[40px] h-auto py-2 px-4 bg-white"
+                className="w-full min-h-[40px] h-auto py-2 px-4 bg-background"
                 onClick={() => setIsFilterDialogOpen(true)}
               >
                 <div className="flex w-full items-center gap-2">
-                  <span className="flex-grow text-left whitespace-normal break-words leading-normal">
+                  <span className="flex-grow text-left whitespace-normal break-words leading-normal text-foreground">
                     {getFilterDisplayText()}
                   </span>
                   <ChevronDown className="w-4 h-4 flex-shrink-0" />
@@ -835,70 +835,6 @@ const ProductsContent = () => {
 
       {/* Chapter/SubChapter Filter Dialog */}
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        {/* <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>
-              Filter by Chapter/Sub-Chapter
-              {!chaptersLoading &&
-                chaptersData?.getChapters?.totalSize &&
-                ` (${chaptersData.getChapters.totalSize} total)`}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
-            {chaptersLoading ? (
-              <div className="p-4 text-center">Loading chapters...</div>
-            ) : (
-              <>
-                {chaptersData?.getChapters?.data.map((chapter: Chapter) => {
-                  const isExpanded = expandedChapter === chapter._id;
-
-                  return (
-                    <div key={chapter._id} className="border-b last:border-b-0">
-                      <div
-                        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-50"
-                        onClick={() => {
-                          if (isExpanded) {
-                            handleFilterSelect(chapter, "chapter");
-                          } else {
-                            setExpandedChapter(chapter._id);
-                          }
-                        }}
-                      >
-                        <span className="font-medium text-right flex-grow">
-                          {chapter.nameAr}
-                        </span>
-                        <ChevronDown
-                          className={`w-5 h-5 transition-transform ${
-                            isExpanded ? "rotate-180" : ""
-                          }`}
-                        />
-                      </div>
-
-                      {isExpanded && chapter.subChapters?.length > 0 && (
-                        <div className="bg-gray-50">
-                          {chapter.subChapters.map((subChapter) => (
-                            <div
-                              key={subChapter._id}
-                              className="flex items-center py-2 px-6 border-t cursor-pointer hover:bg-gray-100"
-                              onClick={() => {
-                                setSelectedChapterId(chapter._id);
-                                handleFilterSelect(subChapter, "subChapter");
-                              }}
-                            >
-                              <span className="text-right flex-grow">
-                                {subChapter.nameAr}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </>
-            )}
-          </div>
-        </DialogContent> */}
         <DialogContent className="sm:max-w-[400px]">
                   <DialogHeader>
                     <DialogTitle>
@@ -918,7 +854,7 @@ const ProductsContent = () => {
                           return (
                             <div key={chapter._id} className="border-b last:border-b-0">
                               <div
-                                className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-50"
+                                className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-muted"
                                 onClick={() => {
                                   if (isExpanded) {
                                     handleFilterSelect(chapter, "chapter");
@@ -927,7 +863,7 @@ const ProductsContent = () => {
                                   }
                                 }}
                               >
-                                <span className="font-medium text-right flex-grow">
+                                <span className="font-medium text-right flex-grow text-foreground">
                                   {chapter.nameAr}
                                 </span>
                                 <ChevronDown
@@ -941,12 +877,12 @@ const ProductsContent = () => {
                                   {chapter.subChapters.map((subChapter) => (
                                     <div
                                       key={subChapter._id}
-                                      className="flex items-center py-2 px-6 border-t cursor-pointer hover:bg-gray-100"
+                                      className="flex items-center py-2 px-6 border-t bg-card border-border cursor-pointer hover:bg-accent"
                                       onClick={() =>
                                         handleFilterSelect(subChapter, "subChapter")
                                       }
                                     >
-                                      <span className="text-right flex-grow">
+                                      <span className="text-right flex-grow text-foreground">
                                         {subChapter.nameAr}
                                       </span>
                                     </div>
@@ -957,7 +893,7 @@ const ProductsContent = () => {
                           );
                         })}
                         {chaptersData?.getChapters?.totalPages > 1 && (
-                          <div className="flex justify-between items-center mt-4 border-t pt-4">
+                          <div className="flex justify-between items-center mt-4 border-t border-border pt-4">
                             <Button
                               type="button"
                               onClick={() =>
@@ -969,7 +905,7 @@ const ProductsContent = () => {
                             >
                               Previous
                             </Button>
-                            <span>
+                            <span className="text-foreground">
                               Page {chaptersData.getChapters.pageNumber + 1} of{" "}
                               {chaptersData.getChapters.totalPages}
                             </span>
@@ -993,9 +929,9 @@ const ProductsContent = () => {
       </Dialog>
 
       {loading ? (
-        <p className="text-center text-gray-500">Loading products...</p>
+        <p className="text-center text-muted-foreground">Loading products...</p>
       ) : rawData.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-40 text-gray-500">
+        <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
           <p className="text-lg font-semibold">No products found</p>
           <p className="text-sm">Try adjusting your search or filters.</p>
         </div>

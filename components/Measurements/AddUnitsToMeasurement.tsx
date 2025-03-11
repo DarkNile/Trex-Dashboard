@@ -19,6 +19,13 @@ interface SelectOption {
   label: string;
 }
 
+interface Product {
+  _id: string;
+  nameEn: string;
+  HSCode: string;
+  nameAr?: string;
+}
+
 interface AddUnitsToMeasurementProps {
   selectedMeasurement: {
     _id: string;
@@ -65,7 +72,8 @@ const GET_PRODUCTS = gql`
         HSCode
         nameEn
         nameAr
-        note
+        noteEn
+        noteAr
         defaultDutyRate
         serviceTax
         adVAT
@@ -113,6 +121,12 @@ const GET_PRODUCTS = gql`
           unitNameAr
           unitNameEn
         }
+        scheduleTaxes {
+          min
+          max
+          fee
+          enhancementFee
+        }
       }
     }
   }
@@ -141,8 +155,13 @@ const AddUnitsToMeasurement: React.FC<AddUnitsToMeasurementProps> = ({
   // Fetch data
   const { data: chaptersData } = useGenericQuery({ query: GET_CHAPTERS });
   const { data: subChaptersData } = useGenericQuery({ query: GET_SUBCHAPTERS });
-  const { data: productsData } = useGenericQuery({ query: GET_PRODUCTS });
-
+  // const { data: productsData } = useGenericQuery({ query: GET_PRODUCTS });
+const { data: productsData , loading: productsLoading } = useGenericQuery<{
+    allProducts: { data: Product[] };
+  }>({
+    query: GET_PRODUCTS,
+  });
+  console.log("Product data : " + JSON.stringify( productsData ));
   // Custom styles for react-select
   const selectStyles: StylesConfig<SelectOption, true> = {
     control: (base) => ({
@@ -160,6 +179,7 @@ const AddUnitsToMeasurement: React.FC<AddUnitsToMeasurementProps> = ({
     }),
     option: (base, state) => ({
       ...base,
+      color:"#0f172a",
       backgroundColor: state.isSelected
         ? "#0f172a"
         : state.isFocused
@@ -185,7 +205,7 @@ const AddUnitsToMeasurement: React.FC<AddUnitsToMeasurementProps> = ({
     })) || [];
 
   const productOptions: SelectOption[] =
-    productsData?.allProducts?.data.map((product: any) => ({
+    productsData?.allProducts?.data.map((product) => ({
       value: product._id,
       label: `${product.nameAr} - ${product.HSCode}`,
     })) || [];
@@ -277,7 +297,11 @@ const AddUnitsToMeasurement: React.FC<AddUnitsToMeasurementProps> = ({
 
           <div className="space-y-2">
             <Label>Products</Label>
-            <Select<SelectOption, true>
+            {
+              productsLoading? (
+                <div>Loading products...</div>
+              ) : (
+                <Select<SelectOption, true>
               isMulti
               options={productOptions}
               styles={selectStyles}
@@ -288,7 +312,11 @@ const AddUnitsToMeasurement: React.FC<AddUnitsToMeasurementProps> = ({
                   productIds: selected?.map((option) => option.value) || [],
                 }))
               }
+              noOptionsMessage={()=> "No options available"}
             />
+              )
+            }
+            
           </div>
 
           <div className="flex justify-end gap-2">
