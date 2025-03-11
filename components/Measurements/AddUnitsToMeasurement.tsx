@@ -19,6 +19,13 @@ interface SelectOption {
   label: string;
 }
 
+interface Product {
+  _id: string;
+  nameEn: string;
+  HSCode: string;
+  nameAr?: string;
+}
+
 interface AddUnitsToMeasurementProps {
   selectedMeasurement: {
     _id: string;
@@ -54,13 +61,72 @@ const GET_SUBCHAPTERS = gql`
 `;
 
 const GET_PRODUCTS = gql`
-  query GetProducts($page: Int!) {
-    allProducts(deleted: { deleted: false }, pageable: { page: $page }) {
+  query AllProducts{
+    allProducts(deleted: { deleted: false }) {
+      totalSize
+      totalPages
+      pageSize
+      pageNumber
       data {
         _id
         HSCode
         nameEn
         nameAr
+        noteEn
+        noteAr
+        defaultDutyRate
+        serviceTax
+        adVAT
+        deletedAt
+        createdAt
+        updatedAt
+        agreements {
+          _id
+          reducedDutyRate
+          agreementId {
+            _id
+            name
+            note
+            deletedAt
+            createdAt
+            updatedAt
+            countryIds {
+              _id
+              nameEn
+              nameAr
+              code
+              deletedAt
+            }
+          }
+          applyGlobal
+        }
+        subChapterId {
+          _id
+          nameEn
+          nameAr
+          deletedAt
+          createdAt
+          updatedAt
+          chapterId {
+            _id
+            nameEn
+            nameAr
+            deletedAt
+            createdAt
+            updatedAt
+          }
+        }
+        measurementUnit {
+          _id
+          unitNameAr
+          unitNameEn
+        }
+        scheduleTaxes {
+          min
+          max
+          fee
+          enhancementFee
+        }
       }
     }
   }
@@ -89,8 +155,13 @@ const AddUnitsToMeasurement: React.FC<AddUnitsToMeasurementProps> = ({
   // Fetch data
   const { data: chaptersData } = useGenericQuery({ query: GET_CHAPTERS });
   const { data: subChaptersData } = useGenericQuery({ query: GET_SUBCHAPTERS });
-  const { data: productsData } = useGenericQuery({ query: GET_PRODUCTS });
-
+  // const { data: productsData } = useGenericQuery({ query: GET_PRODUCTS });
+const { data: productsData , loading: productsLoading } = useGenericQuery<{
+    allProducts: { data: Product[] };
+  }>({
+    query: GET_PRODUCTS,
+  });
+  console.log("Product data : " + JSON.stringify( productsData ));
   // Custom styles for react-select
   const selectStyles: StylesConfig<SelectOption, true> = {
     control: (base) => ({
@@ -108,6 +179,7 @@ const AddUnitsToMeasurement: React.FC<AddUnitsToMeasurementProps> = ({
     }),
     option: (base, state) => ({
       ...base,
+      color:"#0f172a",
       backgroundColor: state.isSelected
         ? "#0f172a"
         : state.isFocused
@@ -133,9 +205,9 @@ const AddUnitsToMeasurement: React.FC<AddUnitsToMeasurementProps> = ({
     })) || [];
 
   const productOptions: SelectOption[] =
-    productsData?.allProducts?.data.map((product: any) => ({
+    productsData?.allProducts?.data.map((product) => ({
       value: product._id,
-      label: `${product.nameEn} - ${product.HSCode}`,
+      label: `${product.nameAr} - ${product.HSCode}`,
     })) || [];
 
   // Mutation for adding units to measurement
@@ -225,7 +297,11 @@ const AddUnitsToMeasurement: React.FC<AddUnitsToMeasurementProps> = ({
 
           <div className="space-y-2">
             <Label>Products</Label>
-            <Select<SelectOption, true>
+            {
+              productsLoading? (
+                <div>Loading products...</div>
+              ) : (
+                <Select<SelectOption, true>
               isMulti
               options={productOptions}
               styles={selectStyles}
@@ -236,7 +312,11 @@ const AddUnitsToMeasurement: React.FC<AddUnitsToMeasurementProps> = ({
                   productIds: selected?.map((option) => option.value) || [],
                 }))
               }
+              noOptionsMessage={()=> "No options available"}
             />
+              )
+            }
+            
           </div>
 
           <div className="flex justify-end gap-2">

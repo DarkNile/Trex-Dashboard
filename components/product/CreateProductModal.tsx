@@ -15,61 +15,47 @@ import { Button } from "../UI/button";
 import { Label } from "../UI/label";
 import { Input } from "../UI/input";
 import Textarea from "../UI/textArea";
+import { useRouter } from "next/navigation";
 
-// Types
 interface Chapter {
   _id: string;
   nameEn: string;
   nameAr: string;
   subChapters: SubChapter[];
 }
-
 interface SubChapter {
   _id: string;
   nameEn: string;
   nameAr: string;
 }
-
 interface AgreementInput {
   agreementId: string;
   reducedDutyRate: number;
   applyGlobal: boolean;
 }
-
+interface ScheduleTax {
+  min: number;
+  max: number;
+  fee: number;
+  enhancementFee: number;
+}
 interface CreateFormData {
   HSCode: string;
   nameEn: string;
   nameAr: string;
-  note: string;
+  noteEn: string;
+  noteAr: string;
   defaultDutyRate: number;
   subChapterId: string;
-  agreements: Array<{
-    agreementId: string;
-    reducedDutyRate: number;
-    applyGlobal: boolean;
-  }>;
+  agreements: AgreementInput[];
   serviceTax: boolean;
   adVAT: number;
   type: "regural" | "car";
+  scheduleTaxes: ScheduleTax[];
 }
 
-// // GraphQL Queries
-// const GET_CHAPTERS = gql`
-//   query GetChapters {
-//     getChapters(extraFilter: { deleted: false }, pageable: { page: 1 }) {
-//       data {
-//         _id
-//         nameEn
-//         nameAr
-//         subChapters {
-//           _id
-//           nameEn
-//           nameAr
-//         }
-//       }
-//     }
-//   }
-// `;
+
+
 
 const GET_CHAPTERS = gql`
   query GetChapters($page: Int!) {
@@ -91,18 +77,6 @@ const GET_CHAPTERS = gql`
     }
   }
 `;
-
-// const GET_AGREEMENTS = gql`
-//   query GetAgreements {
-//     AgreementList(filter: { deleted: false }, pageable: { page: 1 }) {
-//       data {
-//         _id
-//         name
-//       }
-//     }
-//   }
-// `;
-
 const GET_AGREEMENTS = gql`
   query GetAgreements($page: Int!) {
     AgreementList(pageable: { page: $page }, filter: { deleted: false }) {
@@ -117,17 +91,14 @@ const GET_AGREEMENTS = gql`
     }
   }
 `;
-
 const CREATE_PRODUCT = gql`
   mutation CreateProduct($createProductInput: CreateProductInput!) {
     createProduct(createProductInput: $createProductInput)
   }
 `;
-
 interface CreateProductModalProps {
   onSuccess?: () => void;
 }
-
 const CreateProductModal: React.FC<CreateProductModalProps> = ({
   onSuccess,
 }) => {
@@ -147,16 +118,17 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     HSCode: "",
     nameEn: "",
     nameAr: "",
-    note: "",
+    noteEn: "",
+    noteAr:"",
     defaultDutyRate: 0,
     subChapterId: "",
     agreements: [],
     serviceTax: false,
     adVAT: 0,
     type: "regural",
+    scheduleTaxes: [],
   });
-
-  // const { data: chaptersData } = useGenericQuery({ query: GET_CHAPTERS });
+  const router = useRouter();
   const { data: chaptersData, loading: chaptersLoading } = useGenericQuery({
     query: GET_CHAPTERS,
     variables: {
@@ -178,6 +150,8 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     },
   });
 
+
+  
   const { execute: createProduct, isLoading } = useGenericMutation({
     mutation: CREATE_PRODUCT,
     onSuccess: () => {
@@ -186,15 +160,17 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
         HSCode: "",
         nameEn: "",
         nameAr: "",
-        note: "",
+        noteEn: "",
+        noteAr: "",
         defaultDutyRate: 0,
         subChapterId: "",
         agreements: [],
         serviceTax: false,
         adVAT: 0,
         type: "regural",
+        scheduleTaxes: [],
       });
-      setSelectedName("Select a Chapter");
+      setSelectedChapter(null);
       toast.success("Product created successfully! ✅");
       onSuccess?.();
     },
@@ -205,37 +181,37 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    const agreementsString = formData.agreements
-      .map(
-        (agreement) =>
-          `{agreementId:"${agreement.agreementId}",reducedDutyRate:${agreement.reducedDutyRate},applyGlobal:${agreement.applyGlobal}}`
-      )
-      .join(",");
-
     const createProductInput = {
       HSCode: formData.HSCode,
       nameEn: formData.nameEn,
       nameAr: formData.nameAr,
-      note: formData.note,
+      noteEn: formData.noteEn,
+      noteAr: formData.noteAr,
       defaultDutyRate: Number(formData.defaultDutyRate),
       subChapterId: formData.subChapterId,
-      agreements: agreementsString, // Send as a string
+      agreements: formData.agreements.map(agreement => ({
+        agreementId: agreement.agreementId,
+        reducedDutyRate: Number(agreement.reducedDutyRate),
+        applyGlobal: Boolean(agreement.applyGlobal)
+      })),
       serviceTax: formData.serviceTax,
       adVAT: Number(formData.adVAT),
-      type: "regural",
+      type: formData.type,
+      scheduleTaxes: formData.scheduleTaxes.map(tax => ({
+        min: Number(tax.min),
+        max: Number(tax.max),
+        fee: Number(tax.fee),
+        enhancementFee: Number(tax.enhancementFee)
+      })),
     };
 
     console.log("Mutation Input:", {
       createProductInput: createProductInput,
     });
-
-    // Send the mutation
     createProduct({
       createProductInput: createProductInput,
     });
   };
-
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -247,25 +223,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-
-  // const handleChapterSelect = (chapter: Chapter) => {
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     subChapterId: chapter._id,
-  //   }));
-  //   setSelectedName(chapter.nameAr);
-  //   setIsChapterDropdownOpen(false);
-  // };
-
-  // const handleSubChapterSelect = (subChapter: SubChapter) => {
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     subChapterId: subChapter._id,
-  //   }));
-  //   setSelectedName(subChapter.nameAr);
-  //   setIsChapterDropdownOpen(false);
-  // };
-
   const handleChapterSelect = (
     chapter: Chapter | SubChapter,
     type: "chapter" | "subChapter"
@@ -291,7 +248,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     }
     setIsChapterDialogOpen(false);
   };
-
   const handleAgreementToggle = (agreement: { _id: string; name: string }) => {
     setFormData((prev) => {
       const existingAgreement = prev.agreements.find(
@@ -306,20 +262,17 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
           ),
         };
       }
-
       const newAgreement: AgreementInput = {
         agreementId: agreement._id,
-        reducedDutyRate: 0, // Default value, can be modified
-        applyGlobal: true, // Default value, can be modified
+        reducedDutyRate: 0,
+        applyGlobal: true,
       };
-
       return {
         ...prev,
         agreements: [...prev.agreements, newAgreement],
       };
     });
   };
-
   const getAgreementName = (id: string) => {
     return (
       agreementsData?.AgreementList?.data.find(
@@ -328,42 +281,36 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     );
   };
 
-  // const AgreementRateInput: React.FC<{
-  //   agreement: AgreementInput;
-  //   onChange: (agreement: AgreementInput) => void;
-  // }> = ({ agreement, onChange }) => {
-  //   return (
-  //     <div className="flex items-center gap-2 mt-2">
-  //       <Input
-  //         type="number"
-  //         value={agreement.reducedDutyRate}
-  //         onChange={(e) =>
-  //           onChange({
-  //             ...agreement,
-  //             reducedDutyRate: Number(e.target.value),
-  //           })
-  //         }
-  //         placeholder="Reduced Rate %"
-  //         className="w-32"
-  //       />
-  //       <label className="flex items-center gap-2">
-  //         <input
-  //           type="checkbox"
-  //           checked={agreement.applyGlobal}
-  //           onChange={(e) =>
-  //             onChange({
-  //               ...agreement,
-  //               applyGlobal: e.target.checked,
-  //             })
-  //           }
-  //           className="w-4 h-4"
-  //         />
-  //         <span className="text-sm">Apply Global</span>
-  //       </label>
-  //     </div>
-  //   );
-  // };
+  const addScheduleTax = () => {
+    setFormData((prev) => ({
+      ...prev,
+      scheduleTaxes: [
+        ...prev.scheduleTaxes,
+        { min: 0, max: 0, fee: 0, enhancementFee: 0 },
+      ],
+    }));
+  };
 
+  const removeScheduleTax = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      scheduleTaxes: prev.scheduleTaxes.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateScheduleTax = (index: number, field: keyof ScheduleTax, value: number) => {
+    setFormData((prev) => {
+      const updatedTaxes = [...prev.scheduleTaxes];
+      updatedTaxes[index] = {
+        ...updatedTaxes[index],
+        [field]: value,
+      };
+      return {
+        ...prev,
+        scheduleTaxes: updatedTaxes,
+      };
+    });
+  };
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -378,7 +325,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
             <DialogTitle>Create New Product</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Basic form fields */}
             <div className="space-y-2">
               <Label htmlFor="HSCode">HS Code</Label>
               <Input
@@ -389,7 +335,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 required
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="nameEn">English Name</Label>
               <Input
@@ -400,7 +345,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 required
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="nameAr">Arabic Name</Label>
               <Input
@@ -411,7 +355,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 required
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="defaultDutyRate">Default Duty Rate (%)</Label>
               <Input
@@ -423,7 +366,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 required
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="adVAT">VAT Rate (%)</Label>
               <Input
@@ -438,79 +380,24 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 required
               />
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="note">Note</Label>
+              <Label htmlFor="noteAr">Arabic Note</Label>
               <Textarea
-                id="note"
-                name="note"
-                value={formData.note}
+                id="noteAr"
+                name="noteAr"
+                value={formData.noteAr}
                 onChange={handleInputChange}
               />
             </div>
-
-            {/* Custom Chapter Dropdown */}
-            {/* <div className="space-y-2">
-              <Label>Chapter</Label>
-              <div className="relative" dir="rtl">
-                <div
-                  className="w-full border rounded-md p-2 flex justify-between items-center cursor-pointer bg-white"
-                  onClick={() =>
-                    setIsChapterDropdownOpen(!isChapterDropdownOpen)
-                  }
-                >
-                  <span>{selectedName}</span>
-                  <ChevronDown className="w-4 h-4" />
-                </div>
-
-                {isChapterDropdownOpen && (
-                  <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto right-0">
-                    {chaptersData?.getChapters?.data.map((chapter: Chapter) => (
-                      <div
-                        key={chapter._id}
-                        className="border-b last:border-b-0"
-                      >
-                        <div
-                          className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer text-right"
-                          onClick={() => {
-                            if (expandedChapter === chapter._id) {
-                              handleChapterSelect(chapter);
-                            } else {
-                              setExpandedChapter(chapter._id);
-                            }
-                          }}
-                        >
-                          {chapter.subChapters?.length > 0 && (
-                            <span className="mr-2">
-                              {expandedChapter === chapter._id ? (
-                                <ChevronDown className="w-4 h-4" />
-                              ) : (
-                                <ChevronLeft className="w-4 h-4" />
-                              )}
-                            </span>
-                          )}
-                          <span className="font-medium">{chapter.nameAr}</span>
-                        </div>
-
-                        {expandedChapter === chapter._id &&
-                          chapter.subChapters?.map((subChapter) => (
-                            <div
-                              key={subChapter._id}
-                              className="pl-8 pr-3 py-2 hover:bg-gray-100 cursor-pointer text-sm border-t"
-                              onClick={() => handleSubChapterSelect(subChapter)}
-                            >
-                              <span className="font-medium">
-                                {subChapter.nameAr}
-                              </span>
-                            </div>
-                          ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div> */}
-
+            <div className="space-y-2">
+              <Label htmlFor="noteEn">English Note</Label>
+              <Textarea
+                id="noteEn"
+                name="noteEn"
+                value={formData.noteEn}
+                onChange={handleInputChange}
+              />
+            </div>
             <div className="space-y-2">
               <Label>Chapter</Label>
               <Button
@@ -529,7 +416,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 </div>
               </Button>
             </div>
-            {/* Agreements Dropdown */}
+            {/* Agreements Section */}
             <div className="space-y-2">
               <Label>Agreements</Label>
               <div className="space-y-2">
@@ -542,7 +429,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                   <span>Select Agreements</span>
                   <ChevronDown className="w-4 h-4 ml-2" />
                 </Button>
-
                 {formData.agreements.length > 0 && (
                   <div className="mt-4 space-y-4">
                     {formData.agreements.map((agreement) => {
@@ -618,6 +504,91 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 )}
               </div>
             </div>
+            
+            {/* Schedule Taxes Section */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label>Schedule Taxes</Label>
+                <Button 
+                  type="button" 
+                  onClick={addScheduleTax} 
+                  variant="outline" 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-1" /> Add
+                </Button>
+              </div>
+              {formData.scheduleTaxes.length > 0 && (
+                <div className="mt-4 space-y-4">
+                  {formData.scheduleTaxes.map((tax, index) => (
+                    <div
+                      key={index}
+                      className="space-y-3 p-4 border rounded-md relative"
+                    >
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="absolute top-2 right-2 h-6 w-6 p-0"
+                        onClick={() => removeScheduleTax(index)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label htmlFor={`min-${index}`}>Min Value</Label>
+                          <Input
+                            id={`min-${index}`}
+                            type="number"
+                            value={tax.min}
+                            onChange={(e) => updateScheduleTax(index, 'min', Number(e.target.value))}
+                            step="0.1"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor={`max-${index}`}>Max Value</Label>
+                          <Input
+                            id={`max-${index}`}
+                            type="number"
+                            value={tax.max}
+                            onChange={(e) => updateScheduleTax(index, 'max', Number(e.target.value))}
+                            step="0.1"
+                            required
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 mt-2">
+                        <div className="space-y-1">
+                          <Label htmlFor={`fee-${index}`}>Fee</Label>
+                          <Input
+                            id={`fee-${index}`}
+                            type="number"
+                            value={tax.fee}
+                            onChange={(e) => updateScheduleTax(index, 'fee', Number(e.target.value))}
+                            step="0.1"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor={`enhancementFee-${index}`}>Enhancement Fee</Label>
+                          <Input
+                            id={`enhancementFee-${index}`}
+                            type="number"
+                            value={tax.enhancementFee}
+                            onChange={(e) => updateScheduleTax(index, 'enhancementFee', Number(e.target.value))}
+                            step="0.1"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div className="flex items-center space-x-2">
               <input
@@ -645,101 +616,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
           </form>
         </DialogContent>
       </Dialog>
-
-      {/* Chapter Selection Dialog */}
-      {/* <Dialog
-        open={isChapterDialogOpen}
-        onOpenChange={setIsChapterDialogOpen}
-      >
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>
-              Select Chapter
-              {!chaptersLoading &&
-                chaptersData?.getChapters?.totalSize &&
-                ` (${chaptersData.getChapters.totalSize} total)`}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
-            {chaptersLoading ? (
-              <div className="p-4 text-center">Loading chapters...</div>
-            ) : (
-              <>
-                {chaptersData?.getChapters?.data.map((chapter: Chapter) => {
-                  const isExpanded = expandedChapter === chapter._id;
-                  
-                  return (
-                    <div key={chapter._id} className="border-b last:border-b-0">
-                      <div
-                        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-50"
-                        onClick={() => setExpandedChapter(isExpanded ? null : chapter._id)}
-                      >
-                        <span className="font-medium text-right flex-grow">{chapter.nameAr}</span>
-                        <ChevronDown 
-                          className={`w-5 h-5 transition-transform ${
-                            isExpanded ? 'rotate-180' : ''
-                          }`}
-                        />
-                      </div>
-                      
-                      {isExpanded && chapter.subChapters?.length > 0 && (
-                        <div className="bg-gray-50">
-                          {chapter.subChapters.map((subChapter) => (
-                            <div
-                              key={subChapter._id}
-                              className="flex items-center py-2 px-6 border-t cursor-pointer hover:bg-gray-100"
-                              onClick={() => handleChapterSelect(subChapter, 'subChapter')}
-                            >
-                              <span className="text-right flex-grow">{subChapter.nameAr}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {chaptersData?.getChapters?.totalPages > 1 && (
-                  <div className="flex justify-between items-center mt-4 border-t pt-4">
-                    <Button
-                      type="button"
-                      onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-                      disabled={currentPage === 0}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Previous
-                    </Button>
-                    <span>
-                      Page {chaptersData.getChapters.pageNumber + 1} of{" "}
-                      {chaptersData.getChapters.totalPages}
-                    </span>
-                    <Button
-                      type="button"
-                      onClick={() => setCurrentPage((prev) => prev + 1)}
-                      disabled={currentPage >= chaptersData.getChapters.totalPages - 1}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              onClick={() => setIsChapterDialogOpen(false)}
-            >
-              Done
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog> */}
-
-      {/* Chapter Selection Dialog */}
       <Dialog open={isChapterDialogOpen} onOpenChange={setIsChapterDialogOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
@@ -757,17 +633,14 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
               <>
                 {chaptersData?.getChapters?.data.map((chapter: Chapter) => {
                   const isExpanded = expandedChapter === chapter._id;
-
                   return (
                     <div key={chapter._id} className="border-b last:border-b-0">
                       <div
                         className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-50"
                         onClick={() => {
                           if (isExpanded) {
-                            // If already expanded, select the chapter
                             handleChapterSelect(chapter, "chapter");
                           } else {
-                            // If not expanded, expand it
                             setExpandedChapter(chapter._id);
                           }
                         }}
@@ -781,7 +654,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                           }`}
                         />
                       </div>
-
                       {isExpanded && chapter.subChapters?.length > 0 && (
                         <div className="bg-gray-50">
                           {chapter.subChapters.map((subChapter) => (
@@ -802,7 +674,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                     </div>
                   );
                 })}
-
                 {chaptersData?.getChapters?.totalPages > 1 && (
                   <div className="flex justify-between items-center mt-4 border-t pt-4">
                     <Button
@@ -843,7 +714,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
           </div>
         </DialogContent>
       </Dialog>
-
       <Dialog
         open={isAgreementDialogOpen}
         onOpenChange={setIsAgreementDialogOpen}
@@ -886,7 +756,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                     </div>
                   )
                 )}
-
                 {agreementsData?.AgreementList?.totalPages > 1 && (
                   <div className="flex justify-between items-center mt-4 border-t pt-4">
                     <Button
@@ -934,5 +803,4 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     </>
   );
 };
-
 export default CreateProductModal;

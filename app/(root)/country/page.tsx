@@ -97,7 +97,7 @@ const Page = () => {
       header: "Country Code",
       key: "code",
       render: (value) => (
-        <span className="font-mono bg-gray-100 px-2 py-1 rounded">{`${value}`}</span>
+        <span className="font-mono card-foreground px-2 py-1 rounded">{`${value}`}</span>
       ),
     },
     {
@@ -135,7 +135,7 @@ const Page = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-3 px-8 pt-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
           Countries
         </h1>
         {/* Add CreateCountryModal component here */}

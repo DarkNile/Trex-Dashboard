@@ -122,14 +122,14 @@ export default function ChapterPage({
       header: "English Name",
       key: "nameEn" as keyof TransformedSubChapter,
       render: (value: unknown) => (
-        <div className="font-medium text-gray-900">{String(value)}</div>
+        <div className="font-medium text-foreground">{String(value)}</div>
       ),
     },
     {
       header: "Arabic Name",
       key: "nameAr" as keyof TransformedSubChapter,
       render: (value: unknown) => (
-        <div className="font-arabic text-gray-900 text-right">
+        <div className="font-arabic text-foreground text-right">
           {String(value)}
         </div>
       ),
@@ -173,26 +173,26 @@ export default function ChapterPage({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center bg-gray-50">
-        <div className="text-lg font-medium text-gray-600 animate-pulse">
+      <div className="flex items-center justify-center bg-muted">
+        <div className="text-lg font-medium text-muted-foreground animate-pulse">
           Loading...
         </div>
       </div>
     );
   }
-
+  
   if (error) {
     return (
-      <div className="flex items-center justify-center bg-gray-50">
-        <div className="text-lg font-medium text-red-500">Error: {error}</div>
+      <div className="flex items-center justify-center bg-muted">
+        <div className="text-lg font-medium text-destructive">Error: {error}</div>
       </div>
     );
   }
-
+  
   if (!data?.chapter) {
     return (
-      <div className="flex items-center justify-center bg-gray-50">
-        <div className="text-lg font-medium text-gray-600">
+      <div className="flex items-center justify-center bg-muted">
+        <div className="text-lg font-medium text-muted-foreground">
           No chapter found
         </div>
       </div>
@@ -208,43 +208,43 @@ export default function ChapterPage({
   );
 
   return (
-    <div className="bg-gray-50 py-4">
+    <div className="bg-muted py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Chapter Details Card */}
-        <Card className="mb-8 bg-white shadow-lg border-none">
-          <CardHeader className="bg-white border-b border-gray-100">
+        <Card className="mb-8 bg-card shadow-lg border-none">
+          <CardHeader className="bg-card border-b border-border">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-3">
-                <BookOpen className="h-6 w-6 text-blue-600" />
-                <CardTitle className="text-2xl font-bold text-gray-900">
+                <BookOpen className="h-6 w-6 text-primary" />
+                <CardTitle className="text-2xl font-bold text-foreground">
                   Chapter Details
                 </CardTitle>
               </div>
               <Badge
                 variant="secondary"
-                className="px-3 py-1 text-sm bg-blue-100 text-blue-800"
+                className="px-3 py-1 text-sm bg-secondary text-secondary-foreground"
               >
                 ID: {chapter._id}
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-muted rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
                 Parent Chapter
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <p className="text-sm font-medium text-gray-500 mb-1">
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
                     English Name
                   </p>
-                  <p className="text-base text-gray-900">{chapter.nameEn}</p>
+                  <p className="text-base text-foreground">{chapter.nameEn}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500 mb-1">
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
                     Arabic Name
                   </p>
-                  <p className="text-base text-gray-900 font-arabic">
+                  <p className="text-base text-foreground font-arabic">
                     {chapter.nameAr}
                   </p>
                 </div>
@@ -252,7 +252,7 @@ export default function ChapterPage({
             </div>
           </CardContent>
         </Card>
-
+  
         {selectedSubChapter && (
           <UpdateChapterModal
             chapterId={selectedSubChapter._id}
@@ -263,7 +263,7 @@ export default function ChapterPage({
             onClose={() => setSelectedSubChapter(null)}
           />
         )}
-
+  
         {isCreateModalOpen && (
           <CreateSubChapterModal
             chapterId={chapter._id}
@@ -273,28 +273,28 @@ export default function ChapterPage({
             }}
           />
         )}
-
+  
         {/* Subchapters Table */}
         <div className="">
           <div className="">
             <div className="flex justify-between items-start px-8 pt-8 mt-5">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-foreground">
                   Sub Chapters
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Total: {subChaptersData.length} sub chapters
                 </p>
               </div>
               <div className="flex flex-col items-center gap-3">
                 <Button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Sub Chapter
-              </Button>
-              {/* <ArchiveSubChapterModal id ={chapter._id}   /> */}
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Sub Chapter
+                </Button>
+                {/* <ArchiveSubChapterModal id ={chapter._id}   /> */}
               </div>
             </div>
           </div>

@@ -34,6 +34,13 @@ const GET_SHIPPING_PORTS = gql`
           lastName
           email
         }
+        countryId {
+          _id
+          nameEn
+          nameAr
+          code
+          deletedAt
+        }
       }
     }
   }
@@ -67,6 +74,7 @@ const Page = () => {
       });
     },
   });
+  console.log("all data : ", data);
 
   const { execute: deleteShippingPort } = useGenericMutation({
     mutation: DELETE_SHIPPING_PORT,
@@ -169,14 +177,13 @@ const Page = () => {
   return (
     <div className="">
       <div className="flex justify-between items-start px-8 pt-8 mt-5">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
           Shipping Ports
         </h1>
         <div className="flex flex-col items-center">
           <CreateShippingPortModal refetch={refetch} />
           <ArchiveShippingPortModal />
         </div>
-        
       </div>
 
       {transformedData.map(

@@ -61,11 +61,11 @@ type IncotermFromAPI = {
   code: string;
   createdAt: string;
   updatedAt: string;
-  insurance: boolean;
-  internalUnloading: boolean;
-  externalUnloading: boolean;
-  internalFreight: boolean;
-  externalFreight: boolean;
+  insurance: number;
+  internalUnloading: number;
+  externalUnloading: number;
+  internalFreight: number;
+  externalFreight: number;
   updatedBy: {
     _id: string;
     firstName: string;
@@ -146,9 +146,9 @@ const Page = () => {
     })
   );
 
-  const renderBooleanValue = (value: boolean) => (
+  const renderBooleanValue = (value: number) => (
     <span className={value ? "text-green-600" : "text-red-600"}>
-      {value ? "Yes" : "No"}
+      {value ? value : 0}
     </span>
   );
 
@@ -168,27 +168,27 @@ const Page = () => {
     {
       header: "Insurance",
       key: "insurance",
-      render: (value) => renderBooleanValue(value as boolean),
+      render: (value) => renderBooleanValue(value as number),
     },
     {
       header: "Internal Unloading",
       key: "internalUnloading",
-      render: (value) => renderBooleanValue(value as boolean),
+      render: (value) => renderBooleanValue(value as number),
     },
     {
       header: "External Unloading",
       key: "externalUnloading",
-      render: (value) => renderBooleanValue(value as boolean),
+      render: (value) => renderBooleanValue(value as number),
     },
     {
       header: "Internal Freight",
       key: "internalFreight",
-      render: (value) => renderBooleanValue(value as boolean),
+      render: (value) => renderBooleanValue(value as number),
     },
     {
       header: "External Freight",
       key: "externalFreight",
-      render: (value) => renderBooleanValue(value as boolean),
+      render: (value) => renderBooleanValue(value as number),
     },
     {
       header: "Created By",
@@ -235,7 +235,7 @@ const Page = () => {
   return (
     <div className="">
       <div className="flex justify-between items-start px-8 pt-8 mt-5">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
           Incoterms
         </h1>
         <div className="flex flex-col items-center">
