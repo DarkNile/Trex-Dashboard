@@ -383,94 +383,91 @@ const CreateMeasurementModal: React.FC<CreateMeasurementModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="mb-4">
-          <Plus className="w-4 h-4 mr-2" />
-          Add New Measurement
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[1000px]">
-        <DialogHeader>
-          <DialogTitle>Create New Measurement</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="unitNameEn">Unit Name (English)</Label>
-              <Input
-                id="unitNameEn"
-                value={formData.unitNameEn}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    unitNameEn: e.target.value,
-                  }))
-                }
-                required
-                className="w-full"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="unitNameAr">Unit Name (Arabic)</Label>
-              <Input
-                id="unitNameAr"
-                value={formData.unitNameAr}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    unitNameAr: e.target.value,
-                  }))
-                }
-                required
-                className="w-full"
-                dir="rtl"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Chapters</Label>
+  <DialogTrigger asChild>
+    <Button className="mb-4">
+      <Plus className="w-4 h-4 mr-2" />
+      Add New Measurement
+    </Button>
+  </DialogTrigger>
+  <DialogContent className="w-[95%] max-w-[1000px] p-4 md:p-6">
+    <DialogHeader>
+      <DialogTitle>Create New Measurement</DialogTitle>
+    </DialogHeader>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="unitNameEn">Unit Name (English)</Label>
+          <Input
+            id="unitNameEn"
+            value={formData.unitNameEn}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setFormData((prev) => ({
+                ...prev,
+                unitNameEn: e.target.value,
+              }))
+            }
+            required
+            className="w-full"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="unitNameAr">Unit Name (Arabic)</Label>
+          <Input
+            id="unitNameAr"
+            value={formData.unitNameAr}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setFormData((prev) => ({
+                ...prev,
+                unitNameAr: e.target.value,
+              }))
+            }
+            required
+            className="w-full"
+            dir="rtl"
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label>Chapters</Label>
+        <Select<SelectOption, true>
+          isMulti
+          options={chapterOptions}
+          styles={selectStyles}
+          className="w-full"
+          onChange={(selected) =>
+            setFormData((prev) => ({
+              ...prev,
+              chapterIds: selected?.map((option) => option.value) || [],
+            }))
+          }
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>SubChapters</Label>
+        <Select<SelectOption, true>
+          isMulti
+          options={subChapterOptions}
+          styles={selectStyles}
+          className="w-full"
+          onChange={(selected) =>
+            setFormData((prev) => ({
+              ...prev,
+              subChapterIds: selected?.map((option) => option.value) || [],
+            }))
+          }
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Products</Label>
+        {
+          productsLoading? (
+            <div className="text-center py-2">Loading products...</div>
+          ) : (
             <Select<SelectOption, true>
-              isMulti
-              options={chapterOptions}
-              styles={selectStyles}
-              className="w-[950px]"
-              onChange={(selected) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  chapterIds: selected?.map((option) => option.value) || [],
-                }))
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>SubChapters</Label>
-            <Select<SelectOption, true>
-              isMulti
-              options={subChapterOptions}
-              styles={selectStyles}
-              className="w-[950px]"
-              onChange={(selected) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  subChapterIds: selected?.map((option) => option.value) || [],
-                }))
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Products</Label>
-            {
-              productsLoading? (
-                <div>Loading products...</div>
-              ) : (
-                <Select<SelectOption, true>
               isMulti
               options={productOptions}
               styles={selectStyles}
-              className="w-[950px]"
+              className="w-full"
               onChange={(selected) =>
                 setFormData((prev) => ({
                   ...prev,
@@ -479,26 +476,25 @@ const CreateMeasurementModal: React.FC<CreateMeasurementModalProps> = ({
               }
               noOptionsMessage={()=> "No options available"}
             />
-              )
-            }
-            
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating..." : "Create"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+          )
+        }
+      </div>
+      <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setOpen(false)}
+          className="w-full sm:w-auto"
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
+          {isLoading ? "Creating..." : "Create"}
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
   );
 };
 

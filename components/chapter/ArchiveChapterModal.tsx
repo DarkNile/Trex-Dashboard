@@ -147,7 +147,7 @@ type Chapter = ChapterFromAPI & { id: string };
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button className="mb-4 bg-red-950 text-white">
+          <Button className="mb-4 bg-red-950 text-white hover:text-black">
             <Trash className="w-4 h-4 mr-2" />
             Deleted Chapters
           </Button>
@@ -179,7 +179,7 @@ type Chapter = ChapterFromAPI & { id: string };
               <Button
                 type="button"
                 variant="outline"
-                className="bg-red-950 text-white"
+                className="bg-red-950 text-white "
                 onClick={() => setOpen(false)}
               >
                 Done

@@ -143,7 +143,7 @@
 // export default Pagination;
 
 
-
+import './pagination.css';
 
 interface PaginationProps {
   currentPage: number;
@@ -195,20 +195,22 @@ const Pagination = ({
   const visiblePages = getVisiblePages();
   
   return (
-    <div className="flex justify-between items-center p-4">
-      <div className="text-sm text-muted-foreground">
+    <div className="pagination-container">
+      <div className="pagination-info text-muted-foreground">
         {`Show ${((currentPage - 1) * pageSize) + 1} to ${
           Math.min(currentPage * pageSize, totalItems)
         } from ${totalItems}`}
       </div>
       
-      <div className="flex space-x-1">
+      <div className="pagination-controls">
         <button
           onClick={() => onPageChange(pagesToShow[0])}
           disabled={currentPage === pagesToShow[0]}
-          className="px-3 py-1 rounded bg-secondary text-secondary-foreground disabled:opacity-50"
+          className="pagination-button first-button bg-secondary text-secondary-foreground"
+          aria-label="First Page"
         >
-          First
+          <span className="button-text-desktop">First</span>
+          <span className="button-text-mobile">«</span>
         </button>
         
         <button
@@ -219,19 +221,24 @@ const Pagination = ({
             }
           }}
           disabled={currentPage === pagesToShow[0]}
-          className="px-3 py-1 rounded bg-secondary text-secondary-foreground disabled:opacity-50"
+          className="pagination-button prev-button bg-secondary text-secondary-foreground"
+          aria-label="Previous Page"
         >
-          Previous
+          <span className="button-text-desktop">Previous</span>
+          <span className="button-text-mobile">‹</span>
         </button>
         
+        <div className="pagination-pages">
         {visiblePages.map((page, index) => 
           page === "..." ? (
-            <span key={`ellipsis-${index}`} className="px-3 py-1 text-foreground">...</span>
+            <span key={`ellipsis-${index}`} className="pagination-ellipsis text-foreground">...</span>
           ) : (
             <button
               key={`page-${page}`}
               onClick={() => onPageChange(page as number)}
-              className={`px-3 py-1 rounded ${
+              aria-label={`Page ${page}`}
+              aria-current={page === currentPage ? "page" : undefined}
+              className={`pagination-button page-button ${
                 page === currentPage 
                   ? "bg-primary text-primary-foreground" 
                   : "bg-secondary text-secondary-foreground"
@@ -241,6 +248,7 @@ const Pagination = ({
             </button>
           )
         )}
+        </div>
         
         <button
           onClick={() => {
@@ -250,17 +258,21 @@ const Pagination = ({
             }
           }}
           disabled={currentPage === pagesToShow[pagesToShow.length - 1]}
-          className="px-3 py-1 rounded bg-secondary text-secondary-foreground disabled:opacity-50"
+          className="pagination-button next-button bg-secondary text-secondary-foreground"
+          aria-label="Next Page"
         >
-          Next
+          <span className="button-text-desktop">Next</span>
+          <span className="button-text-mobile">›</span>
         </button>
         
         <button
           onClick={() => onPageChange(pagesToShow[pagesToShow.length - 1])}
           disabled={currentPage === pagesToShow[pagesToShow.length - 1]}
-          className="px-3 py-1 rounded bg-secondary text-secondary-foreground disabled:opacity-50"
+          className="pagination-button last-button bg-secondary text-secondary-foreground"
+          aria-label="Last Page"
         >
-          Last
+          <span className="button-text-desktop">Last</span>
+          <span className="button-text-mobile">»</span>
         </button>
       </div>
     </div>

@@ -316,7 +316,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button className="mb-4">
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4 mr-1 md:mr-2" />
             Add New Product
           </Button>
         </DialogTrigger>

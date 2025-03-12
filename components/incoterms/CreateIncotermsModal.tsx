@@ -95,7 +95,7 @@ const CreateIncotermModal: React.FC<CreateIncotermModalProps> = ({
           Add New Incoterm
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Incoterm</DialogTitle>
         </DialogHeader>

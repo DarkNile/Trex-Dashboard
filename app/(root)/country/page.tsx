@@ -119,7 +119,7 @@ const Page = () => {
 
   const actions = [
     {
-      label: "Udate",
+      label: "Update",
       onClick: handleUpdate,
       icon: <Pen className="w-4 h-4" />,
       className: "text-blue-500",
@@ -134,8 +134,8 @@ const Page = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-3 px-8 pt-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+      <div className="flex flex-col md:flex-row justify-between items-center md:items-start px-8 pt-8 mt-5">
+      <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-5 md:mb-0">
           Countries
         </h1>
         {/* Add CreateCountryModal component here */}

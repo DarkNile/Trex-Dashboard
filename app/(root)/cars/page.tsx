@@ -321,8 +321,8 @@ const Page = () => {
 
   return (
     <div className="">
-      <div className="flex justify-between items-center mb-3 px-8 pt-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+      <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-3 px-8 pt-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3 md:mb-0">
           Cars
         </h1>
         <CreateCarModal onSuccess={refetch} />

@@ -90,7 +90,7 @@ type AgreementFromAPI = {
 type Agreement = AgreementFromAPI & { id: string };
 
 const Page = () => {
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [selectedAgreement, setSelectedAgreement] = useState<Agreement | null>(
     null
@@ -224,11 +224,11 @@ const Page = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-start px-8 pt-8 mt-5">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+      <div className="flex flex-col md:flex-row justify-between items-center md:items-start px-8 pt-8 mt-5 ">
+      <h1 className="text-3xl md:text-4xl font-bold text-foreground text-center">
           Trade Agreements
         </h1>
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col sm:flex-row sm:gap-3 md:gap-0 md:flex-col items-center mt-5 md:mt-0">
         <CreateAgreementModal onSuccess={refetch} />
         <ArchiveAgreementsModal />
         </div>

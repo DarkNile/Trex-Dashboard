@@ -100,7 +100,7 @@ const formatType = (type: string) => {
 };
 
 const Page = () => {
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data, loading, error, refetch } =
     useGenericQuery<RegistrationsResponse>({
@@ -234,11 +234,11 @@ const Page = () => {
 
 
     <div className="">
-      <div className="flex justify-between items-start px-8 pt-8 mt-5">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+      <div className="flex flex-col md:flex-row justify-between items-center md:items-start px-8 pt-8 mt-5">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground text-center">
         Partner Registration
         </h1>
-        <div className="flex flex-col items-center">
+        <div className="mt-5 md:mt-0 flex flex-col items-center">
           <ArchivePartnersModal />
         </div>
       </div>
@@ -256,8 +256,8 @@ const Page = () => {
       {!loading && !error && registrations && (
         <Pagination
           currentPage={registrations.pageNumber}
-          totalPages={registrations.totalPages}
-          totalItems={registrations.totalSize}
+          totalPages={registrations.totalPages || 1}
+          totalItems={registrations.totalSize || transformedData.length}
           pageSize={registrations.pageSize}
           onPageChange={handlePageChange}
         />

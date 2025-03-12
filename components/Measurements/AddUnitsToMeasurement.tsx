@@ -256,56 +256,56 @@ const { data: productsData , loading: productsLoading } = useGenericQuery<{
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[1000px]">
-        <DialogHeader>
-          <DialogTitle>
-            Add Units to {selectedMeasurement.unitNameEn}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Chapters</Label>
-            <Select<SelectOption, true>
-              isMulti
-              options={chapterOptions}
-              styles={selectStyles}
-              className="w-[950px]"
-              onChange={(selected) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  chapterIds: selected?.map((option) => option.value) || [],
-                }))
-              }
-            />
-          </div>
+  <DialogContent className="w-[95%] max-w-[1000px] p-4 md:p-6">
+    <DialogHeader>
+      <DialogTitle>
+        Add Units to {selectedMeasurement.unitNameEn}
+      </DialogTitle>
+    </DialogHeader>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label>Chapters</Label>
+        <Select<SelectOption, true>
+          isMulti
+          options={chapterOptions}
+          styles={selectStyles}
+          className="w-full"
+          onChange={(selected) =>
+            setFormData((prev) => ({
+              ...prev,
+              chapterIds: selected?.map((option) => option.value) || [],
+            }))
+          }
+        />
+      </div>
 
-          <div className="space-y-2">
-            <Label>SubChapters</Label>
-            <Select<SelectOption, true>
-              isMulti
-              options={subChapterOptions}
-              styles={selectStyles}
-              className="w-[950px]"
-              onChange={(selected) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  subChapterIds: selected?.map((option) => option.value) || [],
-                }))
-              }
-            />
-          </div>
+      <div className="space-y-2">
+        <Label>SubChapters</Label>
+        <Select<SelectOption, true>
+          isMulti
+          options={subChapterOptions}
+          styles={selectStyles}
+          className="w-full"
+          onChange={(selected) =>
+            setFormData((prev) => ({
+              ...prev,
+              subChapterIds: selected?.map((option) => option.value) || [],
+            }))
+          }
+        />
+      </div>
 
-          <div className="space-y-2">
-            <Label>Products</Label>
-            {
-              productsLoading? (
-                <div>Loading products...</div>
-              ) : (
-                <Select<SelectOption, true>
+      <div className="space-y-2">
+        <Label>Products</Label>
+        {
+          productsLoading ? (
+            <div className="text-center py-2">Loading products...</div>
+          ) : (
+            <Select<SelectOption, true>
               isMulti
               options={productOptions}
               styles={selectStyles}
-              className="w-[950px]"
+              className="w-full"
               onChange={(selected) =>
                 setFormData((prev) => ({
                   ...prev,
@@ -314,22 +314,30 @@ const { data: productsData , loading: productsLoading } = useGenericQuery<{
               }
               noOptionsMessage={()=> "No options available"}
             />
-              )
-            }
-            
-          </div>
+          )
+        }
+      </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Adding..." : "Add Units"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={handleClose}
+          className="w-full sm:w-auto"
+        >
+          Cancel
+        </Button>
+        <Button 
+          type="submit" 
+          disabled={isLoading}
+          className="w-full sm:w-auto"
+        >
+          {isLoading ? "Adding..." : "Add Units"}
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
   );
 };
 

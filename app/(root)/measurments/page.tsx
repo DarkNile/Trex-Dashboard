@@ -51,11 +51,12 @@ const DELETE_MEASUREMENT = gql`
 `;
 
 const DELETE_UNITS = gql`
-  mutation RemoveUnitsFromMeasurement($updateMeasurementInput: addChapterOrSubChapterOrItemsToMeasurementInput!) {
+  mutation RemoveUnitsFromMeasurement(
+    $updateMeasurementInput: addChapterOrSubChapterOrItemsToMeasurementInput!
+  ) {
     removeUnitsFromMeasurement(updateMeasurementInput: $updateMeasurementInput)
   }
 `;
-
 
 //67a7a531bda4138d28f958f1
 //67a7a5ca69e039a908dedcb7
@@ -116,7 +117,6 @@ const Page = () => {
       console.log("Error deleting measurement:", error);
     },
   });
-  
 
   const handleDelete = (measurement: Measurement) => {
     deleteMeasurement({ id: measurement._id });
@@ -135,14 +135,16 @@ const Page = () => {
   });
 
   const handleDeleteUnits = (measurement: Measurement) => {
-    const subChapterId = prompt("Enter the ID of the subunit you want to delete:");
-    
+    const subChapterId = prompt(
+      "Enter the ID of the subunit you want to delete:"
+    );
+
     if (subChapterId) {
-      deleteUnits({ 
+      deleteUnits({
         updateMeasurementInput: {
           id: measurement._id,
-          subChapterIds: subChapterId
-        }
+          subChapterIds: subChapterId,
+        },
       });
     }
   };
@@ -252,25 +254,24 @@ const Page = () => {
 
   return (
     <div className="">
-      {" "}
-      <div className="flex justify-between items-start px-8 pt-8 mt-5">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+      <div className="flex flex-col md:flex-row justify-between items-center md:items-start px-8 pt-8 mt-5">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground text-center">
           Measurement Units
         </h1>
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col sm:flex-row sm:gap-3 md:gap-0 md:flex-col items-center mt-5 md:mt-0">
           <CreateMeasurementModal onSuccess={refetch} />
           <ArchiveMeasurementsModal />
         </div>
         {isRemoveUnitsModalOpen && selectedMeasurement && (
-  <RemoveUnitsFromMeasurement
-    selectedMeasurement={selectedMeasurement}
-    onSuccess={refetch}
-    onClose={() => {
-      setSelectedMeasurement(null);
-      setIsRemoveUnitsModalOpen(false);
-    }}
-  />
-)}
+          <RemoveUnitsFromMeasurement
+            selectedMeasurement={selectedMeasurement}
+            onSuccess={refetch}
+            onClose={() => {
+              setSelectedMeasurement(null);
+              setIsRemoveUnitsModalOpen(false);
+            }}
+          />
+        )}
 
         {selectedMeasurement && isModalOpen && (
           <UpdateMeasurementModal

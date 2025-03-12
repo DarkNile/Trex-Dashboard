@@ -125,6 +125,7 @@ const Navbar = () => {
                       href={`${item.url}`}
                       className="w-[92%] mx-auto my-1.5"
                       key={item.id}
+                      onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
                       <div
                         className={`flex flex-row gap-3 items-center p-2 px-3 rounded-lg transition-all duration-300 ease-in-out

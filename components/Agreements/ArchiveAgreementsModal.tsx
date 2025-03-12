@@ -253,7 +253,7 @@ const ArchiveAgreementsModal = () => {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button className="mb-4 bg-red-950 text-white">
+          <Button className="mb-4 bg-red-950 text-white hover:text-black">
             <Trash className="w-4 h-4 mr-2" />
             Deleted Agreements
           </Button>

@@ -301,8 +301,8 @@ type ProductFromAPI = {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button className="mb-4 bg-red-950 text-white">
-            <Trash className="w-4 h-4 mr-2" />
+          <Button className="mb-4 bg-red-950 text-white hover:text-black">
+            <Trash className="w-4 h-4 mr-1 md:mr-2" />
             Deleted Products
           </Button>
         </DialogTrigger>

@@ -25,7 +25,7 @@ export const menuItems: MenuItem[] = [
     icon: <HomeIcon />,
   },
   {
-    name: "Partnter Registration",
+    name: "Partner Registration",
     id: 2,
     url: "/partner-registration",
     icon: <SquareArrowRightIcon />,
