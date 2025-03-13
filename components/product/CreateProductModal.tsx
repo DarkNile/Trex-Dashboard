@@ -636,7 +636,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                   return (
                     <div key={chapter._id} className="border-b last:border-b-0">
                       <div
-                        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-50"
+                        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-secondary text-foreground dark:text-white"
                         onClick={() => {
                           if (isExpanded) {
                             handleChapterSelect(chapter, "chapter");
@@ -645,9 +645,10 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                           }
                         }}
                       >
-                        <span className="font-medium text-right flex-grow">
+                        <span className="font-medium text-right flex-grow group-hover:text-black dark:group-hover:text-white">
                           {chapter.nameAr}
                         </span>
+                        <div className="group-hover:bg-gray-100 dark:group-hover:bg-gray-700 absolute inset-0 -z-10"></div>
                         <ChevronDown
                           className={`w-5 h-5 transition-transform ${
                             isExpanded ? "rotate-180" : ""
@@ -655,16 +656,16 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                         />
                       </div>
                       {isExpanded && chapter.subChapters?.length > 0 && (
-                        <div className="bg-gray-50">
+                        <div className="bg-gray-50 dark:bg-gray-800">
                           {chapter.subChapters.map((subChapter) => (
                             <div
                               key={subChapter._id}
-                              className="flex items-center py-2 px-6 border-t cursor-pointer hover:bg-gray-100"
+                              className="flex items-center py-2 px-6 border-t cursor-pointer relative hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
                               onClick={() =>
                                 handleChapterSelect(subChapter, "subChapter")
                               }
                             >
-                              <span className="text-right flex-grow">
+                              <span className="text-right flex-grow ">
                                 {subChapter.nameAr}
                               </span>
                             </div>
@@ -687,7 +688,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                     >
                       Previous
                     </Button>
-                    <span>
+                    <span className="dark:text-white">
                       Page {chaptersData.getChapters.pageNumber + 1} of{" "}
                       {chaptersData.getChapters.totalPages}
                     </span>

@@ -144,6 +144,8 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
     ...productData,
     agreements: productData.agreements || [],
     scheduleTaxes: productData.scheduleTaxes || [],
+    noteEn: productData.noteEn || '',
+  noteAr: productData.noteAr || '',
   });
   const [changedFields, setChangedFields] = useState<Partial<ProductData>>({});
   const [isChapterDialogOpen, setIsChapterDialogOpen] = useState(false);
@@ -287,11 +289,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
       return;
     }
 
-    // const updateData = {
-    //   id: productId,
-    //   ...changedFields,
-    // };
-
     const formattedAgreements = formData.agreements.map((agreement) => ({
       agreementId: agreement.agreementId._id,
       reducedDutyRate: agreement.reducedDutyRate,
@@ -311,60 +308,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
 
     router.push(`products/${productId}`);
   };
-
-  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   if (Object.keys(changedFields).length === 0) {
-  //     toast("No changes detected");
-  //     return;
-  //   }
-    
-  //   const formattedAgreements = formData.agreements.map((agreement) => ({
-  //     agreementId: agreement.agreementId._id,
-  //     reducedDutyRate: agreement.reducedDutyRate,
-  //     applyGlobal: agreement.applyGlobal || false,
-  //   }));
-
-  //   const updateData = {
-  //     id: productId,
-  //     ...changedFields,
-  //     agreements: formattedAgreements,
-  //     scheduleTaxes: formData.scheduleTaxes,
-  //   };
-    
-  //   try {
-  //     await updateProduct({
-  //       updateProductInput: updateData,
-  //     });
-      
-  //     // بعد التحديث بنجاح، نقوم بإيجاد الصفحة التي يوجد بها المنتج
-  //     const searchFilters = {
-  //       keyword: searchParams.get('keyword') || "",
-  //       chapterId: searchParams.get('chapterId') || null,
-  //       subChapterId: searchParams.get('subChapterId') || null,
-  //     };
-      
-  //     const productPage = await findProductPage(productId, searchFilters);
-      
-  //     // حفظ الصفحة المناسبة في التخزين المؤقت
-  //     saveListState({
-  //       page: productPage,
-  //       ...searchFilters,
-  //     });
-      
-  //     // إغلاق الـmodal
-  //     onSuccess?.();
-  //     onClose();
-      
-  //     // تحديث الصفحة للانتقال إلى الصفحة المناسبة
-  //     window.location.href = '/products';
-      
-  //   } catch (error) {
-  //     console.error("Error updating product:", error);
-  //     toast.error(`Error updating product: ${error}`);
-  //   }
-  // };
-
   const handleAddScheduleTax = () => {
     setFormData((prev) => {
       const newScheduleTaxes = [
@@ -592,7 +535,7 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
               <Textarea
                 id="noteAr"
                 name="noteAr"
-                value={formData.noteAr}
+                value={formData.noteAr || ''}
                 onChange={handleInputChange}
               />
             </div>
@@ -601,7 +544,7 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
               <Textarea
                 id="noteEn"
                 name="noteEn"
-                value={formData.noteEn}
+                value={formData.noteEn || ''}
                 onChange={handleInputChange}
               />
             </div>
@@ -851,7 +794,7 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
                   return (
                     <div key={chapter._id} className="border-b last:border-b-0">
                       <div
-                        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-50"
+                        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-secondary text-foreground dark:text-white"
                         onClick={() => {
                           if (isExpanded) {
                             handleChapterSelect(chapter, "chapter");
@@ -860,9 +803,10 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
                           }
                         }}
                       >
-                        <span className="font-medium text-right flex-grow">
+                        <span className="font-medium text-right flex-grow group-hover:text-black dark:group-hover:text-white">
                           {chapter.nameAr}
                         </span>
+                        <div className="group-hover:bg-gray-100 dark:group-hover:bg-gray-700 absolute inset-0 -z-10"></div>
                         <ChevronDown
                           className={`w-5 h-5 transition-transform ${
                             isExpanded ? "rotate-180" : ""
@@ -871,11 +815,11 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
                       </div>
 
                       {isExpanded && chapter.subChapters?.length > 0 && (
-                        <div className="bg-gray-50">
+                        <div className="bg-gray-50 dark:bg-gray-800">
                           {chapter.subChapters.map((subChapter) => (
                             <div
                               key={subChapter._id}
-                              className="flex items-center py-2 px-6 border-t cursor-pointer hover:bg-gray-100"
+                              className="flex items-center py-2 px-6 border-t cursor-pointer relative hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
                               onClick={() =>
                                 handleChapterSelect(subChapter, "subChapter")
                               }
@@ -904,7 +848,7 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
                     >
                       Previous
                     </Button>
-                    <span>
+                    <span className="dark:text-white">
                       Page {chaptersData.getChapters.pageNumber + 1} of{" "}
                       {chaptersData.getChapters.totalPages}
                     </span>

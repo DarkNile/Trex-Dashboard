@@ -167,31 +167,31 @@ export default function ProductPage({
   };
 
   return (
-    <div className="bg-background py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Button onClick={handleBackToList} className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />Back
+    <div className="bg-background py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <Button onClick={handleBackToList} className="mb-4 text-sm sm:text-base">
+          <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />Back
         </Button>
         {/* Main Product Info Card */}
-        <Card className="mb-8 bg-card shadow-lg border-none">
-          <CardHeader className="bg-card border-b border-border">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-3">
-                <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                <CardTitle className="text-2xl font-bold text-foreground">
+        <Card className="mb-6 sm:mb-8 bg-card shadow-lg border-none overflow-hidden">
+          <CardHeader className="bg-card border-b border-border p-3 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
+                <CardTitle className="text-lg sm:text-2xl font-bold text-foreground">
                   Product Details
                 </CardTitle>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <Badge
                   variant="secondary"
-                  className="px-3 py-1 text-sm bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                  className="px-2 py-1 text-xs sm:text-sm bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 whitespace-normal"
                 >
                   ID: {product._id}
                 </Badge>
                 <Badge
                   variant="outline"
-                  className="px-3 py-1 text-sm border-amber-300 text-amber-700 dark:border-amber-700 dark:text-amber-400"
+                  className="px-2 py-1 text-xs sm:text-sm border-amber-300 text-amber-700 dark:border-amber-700 dark:text-amber-400 whitespace-normal"
                 >
                   HS Code: {product.HSCode}
                 </Badge>
@@ -199,40 +199,40 @@ export default function ProductPage({
             </div>
           </CardHeader>
   
-          <CardContent className="p-6 space-y-6">
+          <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
             {/* Basic Information Section */}
-            <div className="bg-secondary/50 rounded-xl p-6">
-              <div className="flex items-center mb-4">
-                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
-                <h3 className="text-lg font-semibold text-foreground">
+            <div className="bg-secondary/50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+              <div className="flex items-center mb-3 sm:mb-4">
+                <Info className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400 mr-2" />
+                <h3 className="text-base sm:text-lg font-semibold text-foreground">
                   Basic Information
                 </h3>
               </div>
   
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                     English Name
                   </p>
-                  <p className="text-base text-foreground">{product.nameEn}</p>
+                  <p className="text-sm sm:text-base text-foreground break-words">{product.nameEn}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                     Arabic Name
                   </p>
-                  <p className="text-base text-foreground font-arabic">
+                  <p className="text-sm sm:text-base text-foreground font-arabic break-words">
                     {product.nameAr}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                     HS Code
                   </p>
-                  <p className="text-base text-foreground">{product.HSCode}</p>
+                  <p className="text-sm sm:text-base text-foreground break-words">{product.HSCode}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Type</p>
-                  <p className="text-base text-foreground capitalize">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Type</p>
+                  <p className="text-sm sm:text-base text-foreground capitalize break-words">
                     {product.type || "Regular"}
                   </p>
                 </div>
@@ -240,29 +240,29 @@ export default function ProductPage({
             </div>
   
             {/* Duty & Tax Information */}
-            <div className="bg-secondary/50 rounded-xl p-6">
-              <div className="flex items-center mb-4">
-                <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
-                <h3 className="text-lg font-semibold text-foreground">
+            <div className="bg-secondary/50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+              <div className="flex items-center mb-3 sm:mb-4">
+                <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400 mr-2" />
+                <h3 className="text-base sm:text-lg font-semibold text-foreground">
                   Duty & Tax Information
                 </h3>
               </div>
   
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                     Default Duty Rate
                   </p>
-                  <p className="text-base text-foreground font-semibold">
+                  <p className="text-sm sm:text-base text-foreground font-semibold">
                     {product.defaultDutyRate}%
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                     Service Tax
                   </p>
                   <Badge
-                    className={`${
+                    className={`text-xs sm:text-sm ${
                       product.serviceTax
                         ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
                         : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
@@ -272,46 +272,46 @@ export default function ProductPage({
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                     Ad Valorem VAT
                   </p>
-                  <p className="text-base text-foreground">{product.adVAT}%</p>
+                  <p className="text-sm sm:text-base text-foreground">{product.adVAT}%</p>
                 </div>
               </div>
             </div>
   
             {/* Sub-Chapter Information */}
             {product.subChapterId && (
-              <div className="bg-secondary/50 rounded-xl p-6">
-                <div className="flex items-center mb-4">
-                  <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400 mr-2" />
-                  <h3 className="text-lg font-semibold text-foreground">
+              <div className="bg-secondary/50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                <div className="flex items-center mb-3 sm:mb-4">
+                  <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 dark:text-purple-400 mr-2" />
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground">
                     Sub-Chapter Information
                   </h3>
                 </div>
   
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                       Sub-Chapter ID
                     </p>
-                    <p className="text-base text-foreground">
+                    <p className="text-sm sm:text-base text-foreground break-words">
                       {product.subChapterId._id}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                       Sub-Chapter English Name
                     </p>
-                    <p className="text-base text-foreground">
+                    <p className="text-sm sm:text-base text-foreground break-words">
                       {product.subChapterId.nameEn}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                  <div className="sm:col-span-2">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                       Sub-Chapter Arabic Name
                     </p>
-                    <p className="text-base text-foreground font-arabic">
+                    <p className="text-sm sm:text-base text-foreground font-arabic break-words">
                       {product.subChapterId.nameAr}
                     </p>
                   </div>
@@ -321,26 +321,26 @@ export default function ProductPage({
   
             {/* Notes Section */}
             {product.noteAr && (
-              <div className="bg-secondary/50 rounded-xl p-6">
-                <div className="flex items-center mb-4">
-                  <FileText className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-2" />
-                  <h3 className="text-lg font-semibold text-foreground">Arabic Notes</h3>
+              <div className="bg-secondary/50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                <div className="flex items-center mb-3 sm:mb-4">
+                  <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 dark:text-amber-400 mr-2" />
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground">Arabic Notes</h3>
                 </div>
-                <div className="bg-card p-4 rounded-lg border border-border">
-                  <p className="text-foreground whitespace-pre-line">
+                <div className="bg-card p-2 sm:p-4 rounded-lg border border-border">
+                  <p className="text-sm sm:text-base text-foreground whitespace-pre-line">
                     {product.noteAr}
                   </p>
                 </div>
               </div>
             )}
             {product.noteEn && (
-              <div className="bg-secondary/50 rounded-xl p-6">
-                <div className="flex items-center mb-4">
-                  <FileText className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-2" />
-                  <h3 className="text-lg font-semibold text-foreground">English Notes</h3>
+              <div className="bg-secondary/50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                <div className="flex items-center mb-3 sm:mb-4">
+                  <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 dark:text-amber-400 mr-2" />
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground">English Notes</h3>
                 </div>
-                <div className="bg-card p-4 rounded-lg border border-border">
-                  <p className="text-foreground whitespace-pre-line">
+                <div className="bg-card p-2 sm:p-4 rounded-lg border border-border">
+                  <p className="text-sm sm:text-base text-foreground whitespace-pre-line">
                     {product.noteEn}
                   </p>
                 </div>
@@ -349,48 +349,48 @@ export default function ProductPage({
   
             {/* Trade Agreements */}
             {product.agreements && product.agreements.length > 0 && (
-              <div className="bg-secondary/50 rounded-xl p-6">
-                <div className="flex items-center mb-4">
-                  <Tag className="h-5 w-5 text-indigo-600 dark:text-indigo-400 mr-2" />
-                  <h3 className="text-lg font-semibold text-foreground">
+              <div className="bg-secondary/50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                <div className="flex items-center mb-3 sm:mb-4">
+                  <Tag className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground">
                     Trade Agreements
                   </h3>
                 </div>
   
-                <div className="overflow-hidden shadow ring-1 ring-border ring-opacity-5 rounded-lg">
+                <div className="overflow-x-auto rounded-lg ring-1 ring-border ring-opacity-5">
                   <table className="min-w-full divide-y divide-border">
                     <thead className="bg-muted">
                       <tr>
                         <th
                           scope="col"
-                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-foreground"
+                          className="py-2 px-2 sm:py-3.5 sm:pl-4 sm:pr-3 text-left text-xs sm:text-sm font-semibold text-foreground"
                         >
-                          Agreement Name
+                          Agreement
                         </th>
                         <th
                           scope="col"
-                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-foreground"
+                          className="py-2 px-2 sm:py-3.5 sm:pl-4 sm:pr-3 text-left text-xs sm:text-sm font-semibold text-foreground"
                         >
-                          Apply Globally
+                          Global
                         </th>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-foreground"
+                          className="py-2 px-2 sm:px-3 sm:py-3.5 text-left text-xs sm:text-sm font-semibold text-foreground"
                         >
-                          Reduced Duty Rate
+                          Rate
                         </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border bg-card">
                       {product.agreements.map((agreement, index) => (
                         <tr key={agreement._id || index}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-foreground">
+                          <td className="py-2 px-2 sm:py-4 sm:pl-4 sm:pr-3 text-xs sm:text-sm text-foreground">
                             {agreement.agreementId.name}
                           </td>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-foreground">
+                          <td className="py-2 px-2 sm:py-4 sm:pl-4 sm:pr-3 text-xs sm:text-sm text-foreground">
                             {agreement.applyGlobal ? "Yes" : "No"}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-foreground">
+                          <td className="py-2 px-2 sm:px-3 sm:py-4 text-xs sm:text-sm text-foreground">
                             {agreement.reducedDutyRate}%
                           </td>
                         </tr>
@@ -403,57 +403,57 @@ export default function ProductPage({
             
             {/* Schedule Taxes */}
             {product.scheduleTaxes && product.scheduleTaxes.length > 0 && (
-              <div className="bg-secondary/50 rounded-xl p-6">
-                <div className="flex items-center mb-4">
-                  <Hash className="h-5 w-5 text-indigo-600 dark:text-indigo-400 mr-2" />
-                  <h3 className="text-lg font-semibold text-foreground">
+              <div className="bg-secondary/50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                <div className="flex items-center mb-3 sm:mb-4">
+                  <Hash className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground">
                     Schedule Taxes
                   </h3>
                 </div>
   
-                <div className="overflow-hidden shadow ring-1 ring-border ring-opacity-5 rounded-lg">
+                <div className="overflow-x-auto rounded-lg ring-1 ring-border ring-opacity-5">
                   <table className="min-w-full divide-y divide-border">
                     <thead className="bg-muted">
                       <tr>
                         <th
                           scope="col"
-                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-foreground"
+                          className="py-2 px-2 sm:py-3.5 sm:pl-4 sm:pr-3 text-left text-xs sm:text-sm font-semibold text-foreground"
                         >
                           Min
                         </th>
                         <th
                           scope="col"
-                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-foreground"
+                          className="py-2 px-2 sm:py-3.5 sm:pl-4 sm:pr-3 text-left text-xs sm:text-sm font-semibold text-foreground"
                         >
                           Max
                         </th>
                         <th
                           scope="col"
-                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-foreground"
+                          className="py-2 px-2 sm:py-3.5 sm:pl-4 sm:pr-3 text-left text-xs sm:text-sm font-semibold text-foreground"
                         >
                           Fee
                         </th>
                         <th
                           scope="col"
-                          className="px-0 py-3.5 text-left text-sm font-semibold text-foreground"
+                          className="py-2 px-2 sm:py-3.5 sm:pl-4 sm:pr-3 text-left text-xs sm:text-sm font-semibold text-foreground"
                         >
-                          enhancementFee
+                          Enh. Fee
                         </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border bg-card">
                       {product.scheduleTaxes.map((scheduleTax, index) => (
                         <tr key={index}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-foreground">
+                          <td className="py-2 px-2 sm:py-4 sm:pl-4 sm:pr-3 text-xs sm:text-sm text-foreground">
                             {scheduleTax.min}
                           </td>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-foreground">
+                          <td className="py-2 px-2 sm:py-4 sm:pl-4 sm:pr-3 text-xs sm:text-sm text-foreground">
                             {scheduleTax.max}
                           </td>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-foreground">
+                          <td className="py-2 px-2 sm:py-4 sm:pl-4 sm:pr-3 text-xs sm:text-sm text-foreground">
                             {scheduleTax.fee}
                           </td>
-                          <td className="whitespace-nowrap px-0 py-4 text-sm text-foreground">
+                          <td className="py-2 px-2 sm:py-4 sm:pl-4 sm:pr-3 text-xs sm:text-sm text-foreground">
                             {scheduleTax.enhancementFee}
                           </td>
                         </tr>
@@ -465,37 +465,37 @@ export default function ProductPage({
             )}
   
             {/* Timestamp Information */}
-            <div className="bg-secondary/50 rounded-xl p-6">
-              <div className="flex items-center mb-4">
-                <Calendar className="h-5 w-5 text-gray-600 dark:text-gray-400 mr-2" />
-                <h3 className="text-lg font-semibold text-foreground">
+            <div className="bg-secondary/50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+              <div className="flex items-center mb-3 sm:mb-4">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-gray-400 mr-2" />
+                <h3 className="text-base sm:text-lg font-semibold text-foreground">
                   Timestamp Information
                 </h3>
               </div>
   
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                     Created At
                   </p>
-                  <p className="text-base text-foreground">
+                  <p className="text-sm sm:text-base text-foreground">
                     {formatDate(product.createdAt)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                     Updated At
                   </p>
-                  <p className="text-base text-foreground">
+                  <p className="text-sm sm:text-base text-foreground">
                     {formatDate(product.updatedAt)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                     Deleted At
                   </p>
                   <p
-                    className={`text-base ${
+                    className={`text-sm sm:text-base ${
                       product.deletedAt
                         ? "text-red-600 dark:text-red-400"
                         : "text-muted-foreground italic"
@@ -513,352 +513,4 @@ export default function ProductPage({
       </div>
     </div>
   );
-
-  // return (
-  //   <div className="bg-gray-50 py-8">
-  //     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  //     <Button onClick={handleBackToList} className="mb-4">
-  //       <ArrowLeft className="mr-2 h-4 w-4" />Back
-  //     </Button>
-  //       {/* Main Product Info Card */}
-  //       <Card className="mb-8 bg-white shadow-lg border-none">
-  //         <CardHeader className="bg-white border-b border-gray-100">
-  //           <div className="flex justify-between items-center">
-  //             <div className="flex items-center space-x-3">
-  //               <BookOpen className="h-6 w-6 text-blue-600" />
-  //               <CardTitle className="text-2xl font-bold text-gray-900">
-  //                 Product Details
-  //               </CardTitle>
-  //             </div>
-  //             <div className="flex space-x-2">
-  //               <Badge
-  //                 variant="secondary"
-  //                 className="px-3 py-1 text-sm bg-blue-100 text-blue-800"
-  //               >
-  //                 ID: {product._id}
-  //               </Badge>
-  //               <Badge
-  //                 variant="outline"
-  //                 className="px-3 py-1 text-sm border-amber-300 text-amber-700"
-  //               >
-  //                 HS Code: {product.HSCode}
-  //               </Badge>
-  //             </div>
-  //           </div>
-  //         </CardHeader>
-
-  //         <CardContent className="p-6 space-y-6">
-  //           {/* Basic Information Section */}
-  //           <div className="bg-gray-50 rounded-xl p-6">
-  //             <div className="flex items-center mb-4">
-  //               <Info className="h-5 w-5 text-blue-600 mr-2" />
-  //               <h3 className="text-lg font-semibold text-gray-900">
-  //                 Basic Information
-  //               </h3>
-  //             </div>
-
-  //             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-  //               <div>
-  //                 <p className="text-sm font-medium text-gray-500 mb-1">
-  //                   English Name
-  //                 </p>
-  //                 <p className="text-base text-gray-900">{product.nameEn}</p>
-  //               </div>
-  //               <div>
-  //                 <p className="text-sm font-medium text-gray-500 mb-1">
-  //                   Arabic Name
-  //                 </p>
-  //                 <p className="text-base text-gray-900 font-arabic">
-  //                   {product.nameAr}
-  //                 </p>
-  //               </div>
-  //               <div>
-  //                 <p className="text-sm font-medium text-gray-500 mb-1">
-  //                   HS Code
-  //                 </p>
-  //                 <p className="text-base text-gray-900">{product.HSCode}</p>
-  //               </div>
-  //               <div>
-  //                 <p className="text-sm font-medium text-gray-500 mb-1">Type</p>
-  //                 <p className="text-base text-gray-900 capitalize">
-  //                   {product.type || "Regular"}
-  //                 </p>
-  //               </div>
-  //             </div>
-  //           </div>
-
-  //           {/* Duty & Tax Information */}
-  //           <div className="bg-gray-50 rounded-xl p-6">
-  //             <div className="flex items-center mb-4">
-  //               <DollarSign className="h-5 w-5 text-green-600 mr-2" />
-  //               <h3 className="text-lg font-semibold text-gray-900">
-  //                 Duty & Tax Information
-  //               </h3>
-  //             </div>
-
-  //             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-  //               <div>
-  //                 <p className="text-sm font-medium text-gray-500 mb-1">
-  //                   Default Duty Rate
-  //                 </p>
-  //                 <p className="text-base text-gray-900 font-semibold">
-  //                   {product.defaultDutyRate}%
-  //                 </p>
-  //               </div>
-  //               <div>
-  //                 <p className="text-sm font-medium text-gray-500 mb-1">
-  //                   Service Tax
-  //                 </p>
-  //                 <Badge
-  //                   className={`${
-  //                     product.serviceTax
-  //                       ? "bg-green-100 text-green-800"
-  //                       : "bg-red-100 text-red-800"
-  //                   }`}
-  //                 >
-  //                   {product.serviceTax ? "Applicable" : "Not Applicable"}
-  //                 </Badge>
-  //               </div>
-  //               <div>
-  //                 <p className="text-sm font-medium text-gray-500 mb-1">
-  //                   Ad Valorem VAT
-  //                 </p>
-  //                 <p className="text-base text-gray-900">{product.adVAT}%</p>
-  //               </div>
-  //             </div>
-  //           </div>
-
-  //           {/* Sub-Chapter Information */}
-  //           {product.subChapterId && (
-  //             <div className="bg-gray-50 rounded-xl p-6">
-  //               <div className="flex items-center mb-4">
-  //                 <FileText className="h-5 w-5 text-purple-600 mr-2" />
-  //                 <h3 className="text-lg font-semibold text-gray-900">
-  //                   Sub-Chapter Information
-  //                 </h3>
-  //               </div>
-
-  //               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-  //                 <div>
-  //                   <p className="text-sm font-medium text-gray-500 mb-1">
-  //                     Sub-Chapter ID
-  //                   </p>
-  //                   <p className="text-base text-gray-900">
-  //                     {product.subChapterId._id}
-  //                   </p>
-  //                 </div>
-  //                 <div>
-  //                   <p className="text-sm font-medium text-gray-500 mb-1">
-  //                     Sub-Chapter English Name
-  //                   </p>
-  //                   <p className="text-base text-gray-900">
-  //                     {product.subChapterId.nameEn}
-  //                   </p>
-  //                 </div>
-  //                 <div>
-  //                   <p className="text-sm font-medium text-gray-500 mb-1">
-  //                     Sub-Chapter Arabic Name
-  //                   </p>
-  //                   <p className="text-base text-gray-900 font-arabic">
-  //                     {product.subChapterId.nameAr}
-  //                   </p>
-  //                 </div>
-  //               </div>
-  //             </div>
-  //           )}
-
-  //           {/* Notes Section */}
-  //           {product.noteAr && (
-  //             <div className="bg-gray-50 rounded-xl p-6">
-  //               <div className="flex items-center mb-4">
-  //                 <FileText className="h-5 w-5 text-amber-600 mr-2" />
-  //                 <h3 className="text-lg font-semibold text-gray-900">Arabic Notes</h3>
-  //               </div>
-  //               <div className="bg-white p-4 rounded-lg border border-gray-200">
-  //                 <p className="text-gray-700 whitespace-pre-line">
-  //                   {product.noteAr}
-  //                 </p>
-  //               </div>
-  //             </div>
-  //           )}
-  //           {product.noteEn && (
-  //             <div className="bg-gray-50 rounded-xl p-6">
-  //               <div className="flex items-center mb-4">
-  //                 <FileText className="h-5 w-5 text-amber-600 mr-2" />
-  //                 <h3 className="text-lg font-semibold text-gray-900">English Notes</h3>
-  //               </div>
-  //               <div className="bg-white p-4 rounded-lg border border-gray-200">
-  //                 <p className="text-gray-700 whitespace-pre-line">
-  //                   {product.noteEn}
-  //                 </p>
-  //               </div>
-  //             </div>
-  //           )}
-
-  //           {/* Trade Agreements */}
-  //           {product.agreements && product.agreements.length > 0 && (
-  //             <div className="bg-gray-50 rounded-xl p-6">
-  //               <div className="flex items-center mb-4">
-  //                 <Tag className="h-5 w-5 text-indigo-600 mr-2" />
-  //                 <h3 className="text-lg font-semibold text-gray-900">
-  //                   Trade Agreements
-  //                 </h3>
-  //               </div>
-
-  //               <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-  //                 <table className="min-w-full divide-y divide-gray-300">
-  //                   <thead className="bg-gray-100">
-  //                     <tr>
-  //                       <th
-  //                         scope="col"
-  //                         className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900"
-  //                       >
-  //                         Agreement Name
-  //                       </th>
-  //                       <th
-  //                         scope="col"
-  //                         className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900"
-  //                       >
-  //                         Apply Globally
-  //                       </th>
-  //                       <th
-  //                         scope="col"
-  //                         className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-  //                       >
-  //                         Reduced Duty Rate
-  //                       </th>
-  //                     </tr>
-  //                   </thead>
-  //                   <tbody className="divide-y divide-gray-200 bg-white">
-  //                     {product.agreements.map((agreement, index) => (
-  //                       <tr key={agreement._id || index}>
-  //                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">
-  //                           {agreement.agreementId.name}
-  //                         </td>
-  //                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">
-  //                           {agreement.applyGlobal ? "Yes" : "No"}
-  //                         </td>
-  //                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-  //                           {agreement.reducedDutyRate}%
-  //                         </td>
-  //                       </tr>
-  //                     ))}
-  //                   </tbody>
-  //                 </table>
-  //               </div>
-  //             </div>
-  //           )}
-  //           {/* Schedule Taxes */}
-
-  //           {product.scheduleTaxes && product.scheduleTaxes.length > 0 && (
-  //             <div className="bg-gray-50 rounded-xl p-6">
-  //               <div className="flex items-center mb-4">
-  //               <Hash className="h-5 w-5 text-indigo-600 mr-2" />
-  //                 <h3 className="text-lg font-semibold text-gray-900">
-  //                 Schedule Taxes
-  //                 </h3>
-  //               </div>
-
-  //               <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-  //                 <table className="min-w-full divide-y divide-gray-300">
-  //                   <thead className="bg-gray-100">
-  //                     <tr>
-  //                       <th
-  //                         scope="col"
-  //                         className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900"
-  //                       >
-  //                         Min
-  //                       </th>
-  //                       <th
-  //                         scope="col"
-  //                         className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900"
-  //                       >
-  //                         Max
-  //                       </th>
-  //                       <th
-  //                         scope="col"
-  //                         className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900"
-  //                       >
-  //                         Fee
-  //                       </th>
-  //                       <th
-  //                         scope="col"
-  //                         className="px-0 py-3.5 text-left text-sm font-semibold text-gray-900"
-  //                       >
-  //                         enhancementFee
-  //                       </th>
-  //                     </tr>
-  //                   </thead>
-  //                   <tbody className="divide-y divide-gray-200 bg-white">
-  //                   {product.scheduleTaxes.map((scheduleTax, index) => (
-  //                       <tr key={index}>
-  //                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">
-  //                         {scheduleTax.min}
-  //                         </td>
-  //                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">
-  //                         {scheduleTax.max}
-  //                         </td>
-  //                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">
-  //                         {scheduleTax.fee}
-  //                         </td>
-  //                         <td className="whitespace-nowrap px-0 py-4 text-sm text-gray-900">
-  //                           {scheduleTax.enhancementFee}
-  //                         </td>
-  //                       </tr>
-  //                     ))}
-  //                   </tbody>
-  //                 </table>
-  //               </div>
-  //             </div>
-  //           )}
-
-  //           {/* Timestamp Information */}
-  //           <div className="bg-gray-50 rounded-xl p-6">
-  //             <div className="flex items-center mb-4">
-  //               <Calendar className="h-5 w-5 text-gray-600 mr-2" />
-  //               <h3 className="text-lg font-semibold text-gray-900">
-  //                 Timestamp Information
-  //               </h3>
-  //             </div>
-
-  //             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-  //               <div>
-  //                 <p className="text-sm font-medium text-gray-500 mb-1">
-  //                   Created At
-  //                 </p>
-  //                 <p className="text-base text-gray-900">
-  //                   {formatDate(product.createdAt)}
-  //                 </p>
-  //               </div>
-  //               <div>
-  //                 <p className="text-sm font-medium text-gray-500 mb-1">
-  //                   Updated At
-  //                 </p>
-  //                 <p className="text-base text-gray-900">
-  //                   {formatDate(product.updatedAt)}
-  //                 </p>
-  //               </div>
-  //               <div>
-  //                 <p className="text-sm font-medium text-gray-500 mb-1">
-  //                   Deleted At
-  //                 </p>
-  //                 <p
-  //                   className={`text-base ${
-  //                     product.deletedAt
-  //                       ? "text-red-600"
-  //                       : "text-gray-400 italic"
-  //                   }`}
-  //                 >
-  //                   {product.deletedAt
-  //                     ? formatDate(product.deletedAt)
-  //                     : "Not Deleted"}
-  //                 </p>
-  //               </div>
-  //             </div>
-  //           </div>
-  //         </CardContent>
-  //       </Card>
-  //     </div>
-  //   </div>
-  // );
 }
