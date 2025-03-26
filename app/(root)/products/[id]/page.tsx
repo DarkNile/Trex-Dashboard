@@ -56,6 +56,11 @@ const GET_PRODUCT = gql`
         fee
         enhancementFee
       }
+      flatScheduleTax {
+          per
+          fee
+          enhancementFee
+      }
     }
   }
 `;
@@ -76,6 +81,13 @@ interface ScheduleTax {
   fee: number;
   enhancementFee: number;
 }
+
+interface FlatScheduleTax {
+  per: number;
+  fee: number;
+  enhancementFee: number;
+}
+
 
 interface ProductData {
   _id: string;
@@ -101,6 +113,7 @@ interface ProductData {
   createdAt: string;
   updatedAt: string;
   type: "regural" | "car";
+  flatScheduleTax?: FlatScheduleTax;
 }
 
 interface ProductResponse {
@@ -458,6 +471,67 @@ export default function ProductPage({
                           </td>
                         </tr>
                       ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+
+            {/*Flat Schedule Taxes */}
+            {product.flatScheduleTax && (
+              <div className="bg-secondary/50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                <div className="flex items-center mb-3 sm:mb-4">
+                  <Hash className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground">
+                    Schedule Taxes (for nontraditional products)
+                  </h3>
+                </div>
+  
+                <div className="overflow-x-auto rounded-lg ring-1 ring-border ring-opacity-5">
+                  <table className="min-w-full divide-y divide-border">
+                    <thead className="bg-muted">
+                      <tr>
+                        {/* <th
+                          scope="col"
+                          className="py-2 px-2 sm:py-3.5 sm:pl-4 sm:pr-3 text-left text-xs sm:text-sm font-semibold text-foreground"
+                        >
+                          Min
+                        </th> */}
+                        <th
+                          scope="col"
+                          className="py-2 px-2 sm:py-3.5 sm:pl-4 sm:pr-3 text-left text-xs sm:text-sm font-semibold text-foreground"
+                        >
+                          Per
+                        </th>
+                        <th
+                          scope="col"
+                          className="py-2 px-2 sm:py-3.5 sm:pl-4 sm:pr-3 text-left text-xs sm:text-sm font-semibold text-foreground"
+                        >
+                          Fee
+                        </th>
+                        <th
+                          scope="col"
+                          className="py-2 px-2 sm:py-3.5 sm:pl-4 sm:pr-3 text-left text-xs sm:text-sm font-semibold text-foreground"
+                        >
+                          Enh. Fee
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border bg-card">
+                        <tr>
+                          
+                          <td className="py-2 px-2 sm:py-4 sm:pl-4 sm:pr-3 text-xs sm:text-sm text-foreground">
+                            {product.flatScheduleTax.per}
+                          </td>
+                          <td className="py-2 px-2 sm:py-4 sm:pl-4 sm:pr-3 text-xs sm:text-sm text-foreground">
+                            {product.flatScheduleTax.fee}
+                          </td>
+                          <td className="py-2 px-2 sm:py-4 sm:pl-4 sm:pr-3 text-xs sm:text-sm text-foreground">
+                            {product.flatScheduleTax.enhancementFee}
+                          </td>
+                        </tr>
+                      
                     </tbody>
                   </table>
                 </div>

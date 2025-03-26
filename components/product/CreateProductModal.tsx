@@ -16,6 +16,17 @@ import { Label } from "../UI/label";
 import { Input } from "../UI/input";
 import Textarea from "../UI/textArea";
 import { useRouter } from "next/navigation";
+import AgreementSelectionDialog from "./createComponents/AgreementSelectionDialog";
+import ChapterSelectionDialog from "./createComponents/ChapterSelectionDialog";
+// import ScheduleTaxesSection from "./createComponents/ScheduleTaxesSection";
+import AgreementsSection from "./createComponents/AgreementsSection";
+import BasicProductInfoFields from "./createComponents/BasicProductInfoFields";
+
+interface FlatScheduleTax {
+  per: number;
+  fee: number;
+  enhancementFee: number;
+}
 
 interface Chapter {
   _id: string;
@@ -51,7 +62,11 @@ interface CreateFormData {
   serviceTax: boolean;
   adVAT: number;
   type: "regural" | "car";
+  // scheduleTaxes: ScheduleTax[];
+  // productScheduleTaxType: string;
+  productScheduleTaxType: "traditional" | "nontraditional";
   scheduleTaxes: ScheduleTax[];
+  flatScheduleTax?: FlatScheduleTax;
 }
 
 
@@ -127,6 +142,8 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     adVAT: 0,
     type: "regural",
     scheduleTaxes: [],
+    productScheduleTaxType: "traditional",
+    flatScheduleTax: undefined,
   });
   const router = useRouter();
   const { data: chaptersData, loading: chaptersLoading } = useGenericQuery({
@@ -169,6 +186,8 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
         adVAT: 0,
         type: "regural",
         scheduleTaxes: [],
+        productScheduleTaxType: "traditional",
+        flatScheduleTax: undefined,
       });
       setSelectedChapter(null);
       toast.success("Product created successfully! ✅");
@@ -197,12 +216,33 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       serviceTax: formData.serviceTax,
       adVAT: Number(formData.adVAT),
       type: formData.type,
-      scheduleTaxes: formData.scheduleTaxes.map(tax => ({
-        min: Number(tax.min),
-        max: Number(tax.max),
-        fee: Number(tax.fee),
-        enhancementFee: Number(tax.enhancementFee)
-      })),
+      // scheduleTaxes: formData.scheduleTaxes.map(tax => ({
+      //   min: Number(tax.min),
+      //   max: Number(tax.max),
+      //   fee: Number(tax.fee),
+      //   enhancementFee: Number(tax.enhancementFee)
+      // })),
+      // // productScheduleTaxType: formData.productScheduleTaxType,
+      ...(formData.productScheduleTaxType === "traditional" 
+        ? { 
+            scheduleTaxes: formData.scheduleTaxes.map(tax => ({
+              min: Number(tax.min),
+              max: Number(tax.max),
+              fee: Number(tax.fee),
+              enhancementFee: Number(tax.enhancementFee)
+            }))
+          }
+        : {
+            flatScheduleTax: formData.flatScheduleTax 
+              ? {
+                  per: Number(formData.flatScheduleTax.per),
+                  fee: Number(formData.flatScheduleTax.fee),
+                  enhancementFee: Number(formData.flatScheduleTax.enhancementFee)
+                }
+              : undefined
+          }
+      ),
+      productScheduleTaxType: formData.productScheduleTaxType,
     };
 
     console.log("Mutation Input:", {
@@ -218,6 +258,19 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     >
   ) => {
     const { name, type, checked, value } = e.target as HTMLInputElement;
+
+    // Special handling for productScheduleTaxType
+    if (name === 'productScheduleTaxType') {
+      setFormData((prev) => ({
+        ...prev,
+        productScheduleTaxType: checked ? "nontraditional" : "traditional",
+        // Reset corresponding fields when switching
+        scheduleTaxes: checked ? [] : prev.scheduleTaxes,
+        flatScheduleTax: checked ? { per: 0, fee: 0, enhancementFee: 0 } : undefined
+      }));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -311,201 +364,737 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       };
     });
   };
-  return (
-    <>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button className="mb-4">
-            <Plus className="w-4 h-4 mr-1 md:mr-2" />
-            Add New Product
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Create New Product</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="HSCode">HS Code</Label>
-              <Input
-                id="HSCode"
-                name="HSCode"
-                value={formData.HSCode}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="nameEn">English Name</Label>
-              <Input
-                id="nameEn"
-                name="nameEn"
-                value={formData.nameEn}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="nameAr">Arabic Name</Label>
-              <Input
-                id="nameAr"
-                name="nameAr"
-                value={formData.nameAr}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="defaultDutyRate">Default Duty Rate (%)</Label>
-              <Input
-                id="defaultDutyRate"
-                name="defaultDutyRate"
-                type="number"
-                value={formData.defaultDutyRate}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="adVAT">VAT Rate (%)</Label>
-              <Input
-                id="adVAT"
-                name="adVAT"
-                type="number"
-                value={formData.adVAT}
-                onChange={handleInputChange}
-                min="0"
-                max="100"
-                step="0.1"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="noteAr">Arabic Note</Label>
-              <Textarea
-                id="noteAr"
-                name="noteAr"
-                value={formData.noteAr}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="noteEn">English Note</Label>
-              <Textarea
-                id="noteEn"
-                name="noteEn"
-                value={formData.noteEn}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Chapter</Label>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full min-h-[40px] h-auto py-2 px-4"
-                onClick={() => setIsChapterDialogOpen(true)}
-              >
-                <div className="flex w-full items-start gap-2">
-                  <span className="flex-grow text-right whitespace-normal break-words leading-normal">
-                    {selectedChapter
-                      ? selectedChapter.nameAr
-                      : "Choose Chapter"}
-                  </span>
-                  <ChevronDown className="w-4 h-4 flex-shrink-0 mt-1" />
-                </div>
-              </Button>
-            </div>
-            {/* Agreements Section */}
-            <div className="space-y-2">
-              <Label>Agreements</Label>
-              <div className="space-y-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full justify-between"
-                  onClick={() => setIsAgreementDialogOpen(true)}
-                >
-                  <span>Select Agreements</span>
-                  <ChevronDown className="w-4 h-4 ml-2" />
-                </Button>
-                {formData.agreements.length > 0 && (
-                  <div className="mt-4 space-y-4">
-                    {formData.agreements.map((agreement) => {
-                      const agreementName = getAgreementName(
-                        agreement.agreementId
-                      );
-                      return (
-                        <div
-                          key={agreement.agreementId}
-                          className="space-y-2 p-4 border rounded-md"
-                        >
-                          <div className="font-medium">{agreementName}</div>
-                          <div className="space-y-2">
-                            <Label
-                              htmlFor={`dutyRate-${agreement.agreementId}`}
-                            >
-                              Reduced Duty Rate (%)
-                            </Label>
-                            <Input
-                              id={`dutyRate-${agreement.agreementId}`}
-                              type="number"
-                              value={agreement.reducedDutyRate}
-                              onChange={(e) => {
-                                const newAgreements = formData.agreements.map(
-                                  (a) =>
-                                    a.agreementId === agreement.agreementId
-                                      ? {
-                                          ...a,
-                                          reducedDutyRate: Number(
-                                            e.target.value
-                                          ),
-                                        }
-                                      : a
-                                );
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  agreements: newAgreements,
-                                }));
-                              }}
-                              min="0"
-                              max="100"
-                              step="0.01"
-                              required
-                            />
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id={`global-${agreement.agreementId}`}
-                              checked={agreement.applyGlobal}
-                              onChange={(e) => {
-                                const newAgreements = formData.agreements.map(
-                                  (a) =>
-                                    a.agreementId === agreement.agreementId
-                                      ? { ...a, applyGlobal: e.target.checked }
-                                      : a
-                                );
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  agreements: newAgreements,
-                                }));
-                              }}
-                              className="w-4 h-4"
-                            />
-                            <Label htmlFor={`global-${agreement.agreementId}`}>
-                              Apply Globally
-                            </Label>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
+  // return (
+  //   <>
+  //     <Dialog open={open} onOpenChange={setOpen}>
+  //       <DialogTrigger asChild>
+  //         <Button className="mb-4">
+  //           <Plus className="w-4 h-4 mr-1 md:mr-2" />
+  //           Add New Product
+  //         </Button>
+  //       </DialogTrigger>
+  //       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+  //         <DialogHeader>
+  //           <DialogTitle>Create New Product</DialogTitle>
+  //         </DialogHeader>
+  //         <form onSubmit={handleSubmit} className="space-y-4">
+  //           <div className="space-y-2">
+  //             <Label htmlFor="HSCode">HS Code</Label>
+  //             <Input
+  //               id="HSCode"
+  //               name="HSCode"
+  //               value={formData.HSCode}
+  //               onChange={handleInputChange}
+  //               required
+  //             />
+  //           </div>
+  //           <div className="space-y-2">
+  //             <Label htmlFor="nameEn">English Name</Label>
+  //             <Input
+  //               id="nameEn"
+  //               name="nameEn"
+  //               value={formData.nameEn}
+  //               onChange={handleInputChange}
+  //               required
+  //             />
+  //           </div>
+  //           <div className="space-y-2">
+  //             <Label htmlFor="nameAr">Arabic Name</Label>
+  //             <Input
+  //               id="nameAr"
+  //               name="nameAr"
+  //               value={formData.nameAr}
+  //               onChange={handleInputChange}
+  //               required
+  //             />
+  //           </div>
+  //           <div className="space-y-2">
+  //             <Label htmlFor="defaultDutyRate">Default Duty Rate (%)</Label>
+  //             <Input
+  //               id="defaultDutyRate"
+  //               name="defaultDutyRate"
+  //               type="number"
+  //               value={formData.defaultDutyRate}
+  //               onChange={handleInputChange}
+  //               required
+  //             />
+  //           </div>
+  //           <div className="space-y-2">
+  //             <Label htmlFor="adVAT">VAT Rate (%)</Label>
+  //             <Input
+  //               id="adVAT"
+  //               name="adVAT"
+  //               type="number"
+  //               value={formData.adVAT}
+  //               onChange={handleInputChange}
+  //               min="0"
+  //               max="100"
+  //               step="0.1"
+  //               required
+  //             />
+  //           </div>
+  //           <div className="space-y-2">
+  //             <Label htmlFor="noteAr">Arabic Note</Label>
+  //             <Textarea
+  //               id="noteAr"
+  //               name="noteAr"
+  //               value={formData.noteAr}
+  //               onChange={handleInputChange}
+  //             />
+  //           </div>
+  //           <div className="space-y-2">
+  //             <Label htmlFor="noteEn">English Note</Label>
+  //             <Textarea
+  //               id="noteEn"
+  //               name="noteEn"
+  //               value={formData.noteEn}
+  //               onChange={handleInputChange}
+  //             />
+  //           </div>
+  //           <div className="space-y-2">
+  //             <Label>Chapter</Label>
+  //             <Button
+  //               type="button"
+  //               variant="outline"
+  //               className="w-full min-h-[40px] h-auto py-2 px-4"
+  //               onClick={() => setIsChapterDialogOpen(true)}
+  //             >
+  //               <div className="flex w-full items-start gap-2">
+  //                 <span className="flex-grow text-right whitespace-normal break-words leading-normal">
+  //                   {selectedChapter
+  //                     ? selectedChapter.nameAr
+  //                     : "Choose Chapter"}
+  //                 </span>
+  //                 <ChevronDown className="w-4 h-4 flex-shrink-0 mt-1" />
+  //               </div>
+  //             </Button>
+  //           </div>
+  //           {/* Agreements Section */}
+  //           <div className="space-y-2">
+  //             <Label>Agreements</Label>
+  //             <div className="space-y-2">
+  //               <Button
+  //                 type="button"
+  //                 variant="outline"
+  //                 className="w-full justify-between"
+  //                 onClick={() => setIsAgreementDialogOpen(true)}
+  //               >
+  //                 <span>Select Agreements</span>
+  //                 <ChevronDown className="w-4 h-4 ml-2" />
+  //               </Button>
+  //               {formData.agreements.length > 0 && (
+  //                 <div className="mt-4 space-y-4">
+  //                   {formData.agreements.map((agreement) => {
+  //                     const agreementName = getAgreementName(
+  //                       agreement.agreementId
+  //                     );
+  //                     return (
+  //                       <div
+  //                         key={agreement.agreementId}
+  //                         className="space-y-2 p-4 border rounded-md"
+  //                       >
+  //                         <div className="font-medium">{agreementName}</div>
+  //                         <div className="space-y-2">
+  //                           <Label
+  //                             htmlFor={`dutyRate-${agreement.agreementId}`}
+  //                           >
+  //                             Reduced Duty Rate (%)
+  //                           </Label>
+  //                           <Input
+  //                             id={`dutyRate-${agreement.agreementId}`}
+  //                             type="number"
+  //                             value={agreement.reducedDutyRate}
+  //                             onChange={(e) => {
+  //                               const newAgreements = formData.agreements.map(
+  //                                 (a) =>
+  //                                   a.agreementId === agreement.agreementId
+  //                                     ? {
+  //                                         ...a,
+  //                                         reducedDutyRate: Number(
+  //                                           e.target.value
+  //                                         ),
+  //                                       }
+  //                                     : a
+  //                               );
+  //                               setFormData((prev) => ({
+  //                                 ...prev,
+  //                                 agreements: newAgreements,
+  //                               }));
+  //                             }}
+  //                             min="0"
+  //                             max="100"
+  //                             step="0.01"
+  //                             required
+  //                           />
+  //                         </div>
+  //                         <div className="flex items-center space-x-2">
+  //                           <input
+  //                             type="checkbox"
+  //                             id={`global-${agreement.agreementId}`}
+  //                             checked={agreement.applyGlobal}
+  //                             onChange={(e) => {
+  //                               const newAgreements = formData.agreements.map(
+  //                                 (a) =>
+  //                                   a.agreementId === agreement.agreementId
+  //                                     ? { ...a, applyGlobal: e.target.checked }
+  //                                     : a
+  //                               );
+  //                               setFormData((prev) => ({
+  //                                 ...prev,
+  //                                 agreements: newAgreements,
+  //                               }));
+  //                             }}
+  //                             className="w-4 h-4"
+  //                           />
+  //                           <Label htmlFor={`global-${agreement.agreementId}`}>
+  //                             Apply Globally
+  //                           </Label>
+  //                         </div>
+  //                       </div>
+  //                     );
+  //                   })}
+  //                 </div>
+  //               )}
+  //             </div>
+  //           </div>
             
-            {/* Schedule Taxes Section */}
+  //           {/* Schedule Taxes Section */}
+  //           <div className="space-y-2">
+  //             <div className="flex justify-between items-center">
+  //               <Label>Schedule Taxes</Label>
+  //               <Button 
+  //                 type="button" 
+  //                 onClick={addScheduleTax} 
+  //                 variant="outline" 
+  //                 size="sm"
+  //               >
+  //                 <Plus className="w-4 h-4 mr-1" /> Add
+  //               </Button>
+  //             </div>
+  //             {formData.scheduleTaxes.length > 0 && (
+  //               <div className="mt-4 space-y-4">
+  //                 {formData.scheduleTaxes.map((tax, index) => (
+  //                   <div
+  //                     key={index}
+  //                     className="space-y-3 p-4 border rounded-md relative"
+  //                   >
+  //                     <Button
+  //                       type="button"
+  //                       variant="outline"
+  //                       size="sm"
+  //                       className="absolute top-2 right-2 h-6 w-6 p-0"
+  //                       onClick={() => removeScheduleTax(index)}
+  //                     >
+  //                       <X className="w-4 h-4" />
+  //                     </Button>
+                      
+  //                     <div className="grid grid-cols-2 gap-3">
+  //                       <div className="space-y-1">
+  //                         <Label htmlFor={`min-${index}`}>Min Value</Label>
+  //                         <Input
+  //                           id={`min-${index}`}
+  //                           type="number"
+  //                           value={tax.min}
+  //                           onChange={(e) => updateScheduleTax(index, 'min', Number(e.target.value))}
+  //                           step="0.1"
+  //                           required
+  //                         />
+  //                       </div>
+  //                       <div className="space-y-1">
+  //                         <Label htmlFor={`max-${index}`}>Max Value</Label>
+  //                         <Input
+  //                           id={`max-${index}`}
+  //                           type="number"
+  //                           value={tax.max}
+  //                           onChange={(e) => updateScheduleTax(index, 'max', Number(e.target.value))}
+  //                           step="0.1"
+  //                           required
+  //                         />
+  //                       </div>
+  //                     </div>
+                      
+  //                     <div className="grid grid-cols-2 gap-3 mt-2">
+  //                       <div className="space-y-1">
+  //                         <Label htmlFor={`fee-${index}`}>Fee</Label>
+  //                         <Input
+  //                           id={`fee-${index}`}
+  //                           type="number"
+  //                           value={tax.fee}
+  //                           onChange={(e) => updateScheduleTax(index, 'fee', Number(e.target.value))}
+  //                           step="0.1"
+  //                           required
+  //                         />
+  //                       </div>
+  //                       <div className="space-y-1">
+  //                         <Label htmlFor={`enhancementFee-${index}`}>Enhancement Fee</Label>
+  //                         <Input
+  //                           id={`enhancementFee-${index}`}
+  //                           type="number"
+  //                           value={tax.enhancementFee}
+  //                           onChange={(e) => updateScheduleTax(index, 'enhancementFee', Number(e.target.value))}
+  //                           step="0.1"
+  //                           required
+  //                         />
+  //                       </div>
+  //                     </div>
+  //                   </div>
+  //                 ))}
+  //               </div>
+  //             )}
+  //           </div>
+
+  //           <div className="flex items-center space-x-2">
+  //             <input
+  //               type="checkbox"
+  //               id="serviceTax"
+  //               name="serviceTax"
+  //               checked={formData.serviceTax}
+  //               onChange={handleInputChange}
+  //               className="w-4 h-4"
+  //             />
+  //             <Label htmlFor="serviceTax">Service Tax</Label>
+  //           </div>
+  //           <div className="flex justify-end gap-2">
+  //             <Button
+  //               type="button"
+  //               variant="outline"
+  //               onClick={() => setOpen(false)}
+  //             >
+  //               Cancel
+  //             </Button>
+  //             <Button type="submit" disabled={isLoading}>
+  //               {isLoading ? "Creating..." : "Create"}
+  //             </Button>
+  //           </div>
+  //         </form>
+  //       </DialogContent>
+  //     </Dialog>
+  //     <Dialog open={isChapterDialogOpen} onOpenChange={setIsChapterDialogOpen}>
+  //       <DialogContent className="sm:max-w-[400px]">
+  //         <DialogHeader>
+  //           <DialogTitle>
+  //             Select Chapter
+  //             {!chaptersLoading &&
+  //               chaptersData?.getChapters?.totalSize &&
+  //               ` (${chaptersData.getChapters.totalSize} total)`}
+  //           </DialogTitle>
+  //         </DialogHeader>
+  //         <div className="max-h-[60vh] overflow-y-auto">
+  //           {chaptersLoading ? (
+  //             <div className="p-4 text-center">Loading chapters...</div>
+  //           ) : (
+  //             <>
+  //               {chaptersData?.getChapters?.data.map((chapter: Chapter) => {
+  //                 const isExpanded = expandedChapter === chapter._id;
+  //                 return (
+  //                   <div key={chapter._id} className="border-b last:border-b-0">
+  //                     <div
+  //                       className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-secondary text-foreground dark:text-white"
+  //                       onClick={() => {
+  //                         if (isExpanded) {
+  //                           handleChapterSelect(chapter, "chapter");
+  //                         } else {
+  //                           setExpandedChapter(chapter._id);
+  //                         }
+  //                       }}
+  //                     >
+  //                       <span className="font-medium text-right flex-grow group-hover:text-black dark:group-hover:text-white">
+  //                         {chapter.nameAr}
+  //                       </span>
+  //                       <div className="group-hover:bg-gray-100 dark:group-hover:bg-gray-700 absolute inset-0 -z-10"></div>
+  //                       <ChevronDown
+  //                         className={`w-5 h-5 transition-transform ${
+  //                           isExpanded ? "rotate-180" : ""
+  //                         }`}
+  //                       />
+  //                     </div>
+  //                     {isExpanded && chapter.subChapters?.length > 0 && (
+  //                       <div className="bg-gray-50 dark:bg-gray-800">
+  //                         {chapter.subChapters.map((subChapter) => (
+  //                           <div
+  //                             key={subChapter._id}
+  //                             className="flex items-center py-2 px-6 border-t cursor-pointer relative hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
+  //                             onClick={() =>
+  //                               handleChapterSelect(subChapter, "subChapter")
+  //                             }
+  //                           >
+  //                             <span className="text-right flex-grow ">
+  //                               {subChapter.nameAr}
+  //                             </span>
+  //                           </div>
+  //                         ))}
+  //                       </div>
+  //                     )}
+  //                   </div>
+  //                 );
+  //               })}
+  //               {chaptersData?.getChapters?.totalPages > 1 && (
+  //                 <div className="flex justify-between items-center mt-4 border-t pt-4">
+  //                   <Button
+  //                     type="button"
+  //                     onClick={() =>
+  //                       setCurrentPage((prev) => Math.max(0, prev - 1))
+  //                     }
+  //                     disabled={currentPage === 0}
+  //                     variant="outline"
+  //                     size="sm"
+  //                   >
+  //                     Previous
+  //                   </Button>
+  //                   <span className="dark:text-white">
+  //                     Page {chaptersData.getChapters.pageNumber + 1} of{" "}
+  //                     {chaptersData.getChapters.totalPages}
+  //                   </span>
+  //                   <Button
+  //                     type="button"
+  //                     onClick={() => setCurrentPage((prev) => prev + 1)}
+  //                     disabled={
+  //                       currentPage >= chaptersData.getChapters.totalPages - 1
+  //                     }
+  //                     variant="outline"
+  //                     size="sm"
+  //                   >
+  //                     Next
+  //                   </Button>
+  //                 </div>
+  //               )}
+  //             </>
+  //           )}
+  //         </div>
+  //         <div className="flex justify-end">
+  //           <Button type="button" onClick={() => setIsChapterDialogOpen(false)}>
+  //             Done
+  //           </Button>
+  //         </div>
+  //       </DialogContent>
+  //     </Dialog>
+  //     <Dialog
+  //       open={isAgreementDialogOpen}
+  //       onOpenChange={setIsAgreementDialogOpen}
+  //     >
+  //       <DialogContent className="sm:max-w-[400px]">
+  //         <DialogHeader>
+  //           <DialogTitle>
+  //             Select Agreements
+  //             {!agreementsLoading &&
+  //               agreementsData?.AgreementList?.totalSize &&
+  //               ` (${agreementsData.AgreementList.totalSize} total)`}
+  //           </DialogTitle>
+  //         </DialogHeader>
+  //         <div className="max-h-[60vh] overflow-y-auto">
+  //           {agreementsLoading ? (
+  //             <div className="p-4 text-center">Loading agreements...</div>
+  //           ) : (
+  //             <>
+  //               {agreementsData?.AgreementList?.data.map(
+  //                 (agreement: { _id: string; name: string }) => (
+  //                   <div
+  //                     key={agreement._id}
+  //                     className="flex items-center space-x-2 py-2 border-b last:border-b-0"
+  //                   >
+  //                     <input
+  //                       type="checkbox"
+  //                       id={`agreement-${agreement._id}`}
+  //                       checked={formData.agreements.some(
+  //                         (a) => a.agreementId === agreement._id
+  //                       )}
+  //                       onChange={() => handleAgreementToggle(agreement)}
+  //                       className="w-4 h-4"
+  //                     />
+  //                     <Label
+  //                       htmlFor={`agreement-${agreement._id}`}
+  //                       className="flex-grow cursor-pointer"
+  //                     >
+  //                       {agreement.name}
+  //                     </Label>
+  //                   </div>
+  //                 )
+  //               )}
+  //               {agreementsData?.AgreementList?.totalPages > 1 && (
+  //                 <div className="flex justify-between items-center mt-4 border-t pt-4">
+  //                   <Button
+  //                     type="button"
+  //                     onClick={() =>
+  //                       setCurrentPage((prev) => Math.max(0, prev - 1))
+  //                     }
+  //                     disabled={currentPage === 0}
+  //                     variant="outline"
+  //                     size="sm"
+  //                   >
+  //                     Previous
+  //                   </Button>
+  //                   <span>
+  //                     Page {agreementsData.AgreementList.pageNumber + 1} of{" "}
+  //                     {agreementsData.AgreementList.totalPages}
+  //                   </span>
+  //                   <Button
+  //                     type="button"
+  //                     onClick={() => setCurrentPage((prev) => prev + 1)}
+  //                     disabled={
+  //                       currentPage >=
+  //                       agreementsData.AgreementList.totalPages - 1
+  //                     }
+  //                     variant="outline"
+  //                     size="sm"
+  //                   >
+  //                     Next
+  //                   </Button>
+  //                 </div>
+  //               )}
+  //             </>
+  //           )}
+  //         </div>
+  //         <div className="flex justify-end">
+  //           <Button
+  //             type="button"
+  //             onClick={() => setIsAgreementDialogOpen(false)}
+  //           >
+  //             Done
+  //           </Button>
+  //         </div>
+  //       </DialogContent>
+  //     </Dialog>
+  //   </>
+  // );
+
+
+//   return (
+//     <>
+//       <Dialog open={open} onOpenChange={setOpen}>
+//         <DialogTrigger asChild>
+//           <Button className="mb-4">
+//             <Plus className="w-4 h-4 mr-1 md:mr-2" />
+//             Add New Product
+//           </Button>
+//         </DialogTrigger>
+//         <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+//           <DialogHeader>
+//             <DialogTitle>Create New Product</DialogTitle>
+//           </DialogHeader>
+//           <form onSubmit={handleSubmit} className="space-y-4">
+//           {/* <div className="space-y-2">
+//               <Label>Tax Type</Label>
+//               <div className="flex space-x-2">
+//                 <Button
+//                   type="button"
+//                   variant={formData.taxTypes === ProductTaxTypes.traditional ? 'default' : 'outline'}
+//                   onClick={() => handleTaxTypeChange(ProductTaxTypes.traditional)}
+//                 >
+//                   Traditional
+//                 </Button>
+//                 <Button
+//                   type="button"
+//                   variant={formData.taxTypes === ProductTaxTypes.nontraditional ? 'default' : 'outline'}
+//                   onClick={() => handleTaxTypeChange(ProductTaxTypes.nontraditional)}
+//                 >
+//                   Nontraditional
+//                 </Button>
+//               </div>
+//             </div> */}
+//             <BasicProductInfoFields
+//               formData={formData}
+//               handleInputChange={handleInputChange}
+//               selectedChapter={selectedChapter}
+//               onChapterSelect={() => setIsChapterDialogOpen(true)}
+//             />
+
+//             <AgreementsSection
+//               formData={formData}
+//               agreementsData={agreementsData}
+//               getAgreementName={getAgreementName}
+//               setFormData={setFormData}
+//               onAgreementSelect={() => setIsAgreementDialogOpen(true)}
+//             />
+
+//             {/* <ScheduleTaxesSection
+//               formData={formData}
+//               addScheduleTax={addScheduleTax}
+//               removeScheduleTax={removeScheduleTax}
+//               updateScheduleTax={updateScheduleTax}
+//             /> */}
+
+//                       {/* Schedule Taxes Section */}
+//                       <div className="space-y-2">
+//               <div className="flex justify-between items-center">
+//                 <Label>Schedule Taxes</Label>
+//                 <Button 
+//                   type="button" 
+//                   onClick={addScheduleTax} 
+//                   variant="outline" 
+//                   size="sm"
+//                 >
+//                   <Plus className="w-4 h-4 mr-1" /> Add
+//                 </Button>
+//               </div>
+//               {formData.scheduleTaxes.length > 0 && (
+//                 <div className="mt-4 space-y-4">
+//                   {formData.scheduleTaxes.map((tax, index) => (
+//                     <div
+//                       key={index}
+//                       className="space-y-3 p-4 border rounded-md relative"
+//                     >
+//                       <Button
+//                         type="button"
+//                         variant="outline"
+//                         size="sm"
+//                         className="absolute top-2 right-2 h-6 w-6 p-0"
+//                         onClick={() => removeScheduleTax(index)}
+//                       >
+//                         <X className="w-4 h-4" />
+//                       </Button>
+                      
+//                       <div className="grid grid-cols-2 gap-3">
+//                         <div className="space-y-1">
+//                           <Label htmlFor={`min-${index}`}>Min Value</Label>
+//                           <Input
+//                             id={`min-${index}`}
+//                             type="number"
+//                             value={tax.min}
+//                             onChange={(e) => updateScheduleTax(index, 'min', Number(e.target.value))}
+//                             step="0.1"
+//                             required
+//                           />
+//                         </div>
+//                         <div className="space-y-1">
+//                           <Label htmlFor={`max-${index}`}>Max Value</Label>
+//                           <Input
+//                             id={`max-${index}`}
+//                             type="number"
+//                             value={tax.max}
+//                             onChange={(e) => updateScheduleTax(index, 'max', Number(e.target.value))}
+//                             step="0.1"
+//                             required
+//                           />
+//                         </div>
+//                       </div>
+                      
+//                       <div className="grid grid-cols-2 gap-3 mt-2">
+//                         <div className="space-y-1">
+//                           <Label htmlFor={`fee-${index}`}>Fee</Label>
+//                           <Input
+//                             id={`fee-${index}`}
+//                             type="number"
+//                             value={tax.fee}
+//                             onChange={(e) => updateScheduleTax(index, 'fee', Number(e.target.value))}
+//                             step="0.1"
+//                             required
+//                           />
+//                         </div>
+//                         <div className="space-y-1">
+//                           <Label htmlFor={`enhancementFee-${index}`}>Enhancement Fee</Label>
+//                           <Input
+//                             id={`enhancementFee-${index}`}
+//                             type="number"
+//                             value={tax.enhancementFee}
+//                             onChange={(e) => updateScheduleTax(index, 'enhancementFee', Number(e.target.value))}
+//                             step="0.1"
+//                             required
+//                           />
+//                         </div>
+//                       </div>
+//                     </div>
+//                   ))}
+//                 </div>
+//               )}
+//             </div>
+
+//             <div className="flex items-center space-x-2">
+//               <input
+//                 type="checkbox"
+//                 id="serviceTax"
+//                 name="serviceTax"
+//                 checked={formData.serviceTax}
+//                 onChange={handleInputChange}
+//                 className="w-4 h-4"
+//               />
+//               <Label htmlFor="serviceTax">Service Tax</Label>
+//             </div>
+//             <div className="flex justify-end gap-2">
+//               <Button
+//                 type="button"
+//                 variant="outline"
+//                 onClick={() => setOpen(false)}
+//               >
+//                 Cancel
+//               </Button>
+//               <Button type="submit" disabled={isLoading}>
+//                 {isLoading ? "Creating..." : "Create"}
+//               </Button>
+//             </div>
+//           </form>
+//         </DialogContent>
+//       </Dialog>
+
+//       <ChapterSelectionDialog
+//         open={isChapterDialogOpen}
+//         onOpenChange={setIsChapterDialogOpen}
+//         chaptersData={chaptersData}
+//         chaptersLoading={chaptersLoading}
+//         onChapterSelect={handleChapterSelect}
+//       />
+
+// <AgreementSelectionDialog
+//   open={isAgreementDialogOpen}
+//   onOpenChange={setIsAgreementDialogOpen}
+//   agreementsData={agreementsData}
+//   agreementsLoading={agreementsLoading}
+//   formData={formData}
+//   onAgreementToggle={handleAgreementToggle}
+//   currentPage={currentPage}
+//   setCurrentPage={setCurrentPage}
+// />
+
+      
+//     </>
+//   );
+
+
+return (
+  <>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="mb-4">
+          <Plus className="w-4 h-4 mr-1 md:mr-2" />
+          Add New Product
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Create New Product</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <BasicProductInfoFields
+            formData={formData}
+            handleInputChange={handleInputChange}
+            selectedChapter={selectedChapter}
+            onChapterSelect={() => setIsChapterDialogOpen(true)}
+          />
+
+          <AgreementsSection
+            formData={formData}
+            agreementsData={agreementsData}
+            getAgreementName={getAgreementName}
+            setFormData={setFormData}
+            onAgreementSelect={() => setIsAgreementDialogOpen(true)}
+          />
+
+          {/* New Toggle for Product Schedule Tax Type */}
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="productScheduleTaxType"
+              name="productScheduleTaxType"
+              checked={formData.productScheduleTaxType === "nontraditional"}
+              onChange={handleInputChange}
+              className="w-4 h-4"
+            />
+            <Label htmlFor="productScheduleTaxType">
+              Use Nontraditional Schedule Tax
+            </Label>
+          </div>
+
+          {/* Conditional Rendering of Schedule Taxes */}
+          {formData.productScheduleTaxType === "traditional" ? (
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label>Schedule Taxes</Label>
@@ -589,219 +1178,114 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 </div>
               )}
             </div>
+          ) : (
+            <div className="space-y-2">
+              <Label>Flat Schedule Tax</Label>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="flatScheduleTax-per">Per Value</Label>
+                  <Input
+                    id="flatScheduleTax-per"
+                    type="number"
+                    name="flatScheduleTax.per"
+                    value={formData.flatScheduleTax?.per || 0}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      flatScheduleTax: {
+                        ...prev.flatScheduleTax,
+                        per: Number(e.target.value)
+                      } as FlatScheduleTax
+                    }))}
+                    step="0.1"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="flatScheduleTax-fee">Fee</Label>
+                  <Input
+                    id="flatScheduleTax-fee"
+                    type="number"
+                    name="flatScheduleTax.fee"
+                    value={formData.flatScheduleTax?.fee || 0}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      flatScheduleTax: {
+                        ...prev.flatScheduleTax,
+                        fee: Number(e.target.value)
+                      } as FlatScheduleTax
+                    }))}
+                    step="0.1"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="flatScheduleTax-enhancementFee">Enhancement Fee</Label>
+                  <Input
+                    id="flatScheduleTax-enhancementFee"
+                    type="number"
+                    name="flatScheduleTax.enhancementFee"
+                    value={formData.flatScheduleTax?.enhancementFee || 0}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      flatScheduleTax: {
+                        ...prev.flatScheduleTax,
+                        enhancementFee: Number(e.target.value)
+                      } as FlatScheduleTax
+                    }))}
+                    step="0.1"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="serviceTax"
-                name="serviceTax"
-                checked={formData.serviceTax}
-                onChange={handleInputChange}
-                className="w-4 h-4"
-              />
-              <Label htmlFor="serviceTax">Service Tax</Label>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={isChapterDialogOpen} onOpenChange={setIsChapterDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>
-              Select Chapter
-              {!chaptersLoading &&
-                chaptersData?.getChapters?.totalSize &&
-                ` (${chaptersData.getChapters.totalSize} total)`}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
-            {chaptersLoading ? (
-              <div className="p-4 text-center">Loading chapters...</div>
-            ) : (
-              <>
-                {chaptersData?.getChapters?.data.map((chapter: Chapter) => {
-                  const isExpanded = expandedChapter === chapter._id;
-                  return (
-                    <div key={chapter._id} className="border-b last:border-b-0">
-                      <div
-                        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-secondary text-foreground dark:text-white"
-                        onClick={() => {
-                          if (isExpanded) {
-                            handleChapterSelect(chapter, "chapter");
-                          } else {
-                            setExpandedChapter(chapter._id);
-                          }
-                        }}
-                      >
-                        <span className="font-medium text-right flex-grow group-hover:text-black dark:group-hover:text-white">
-                          {chapter.nameAr}
-                        </span>
-                        <div className="group-hover:bg-gray-100 dark:group-hover:bg-gray-700 absolute inset-0 -z-10"></div>
-                        <ChevronDown
-                          className={`w-5 h-5 transition-transform ${
-                            isExpanded ? "rotate-180" : ""
-                          }`}
-                        />
-                      </div>
-                      {isExpanded && chapter.subChapters?.length > 0 && (
-                        <div className="bg-gray-50 dark:bg-gray-800">
-                          {chapter.subChapters.map((subChapter) => (
-                            <div
-                              key={subChapter._id}
-                              className="flex items-center py-2 px-6 border-t cursor-pointer relative hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
-                              onClick={() =>
-                                handleChapterSelect(subChapter, "subChapter")
-                              }
-                            >
-                              <span className="text-right flex-grow ">
-                                {subChapter.nameAr}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                {chaptersData?.getChapters?.totalPages > 1 && (
-                  <div className="flex justify-between items-center mt-4 border-t pt-4">
-                    <Button
-                      type="button"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(0, prev - 1))
-                      }
-                      disabled={currentPage === 0}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Previous
-                    </Button>
-                    <span className="dark:text-white">
-                      Page {chaptersData.getChapters.pageNumber + 1} of{" "}
-                      {chaptersData.getChapters.totalPages}
-                    </span>
-                    <Button
-                      type="button"
-                      onClick={() => setCurrentPage((prev) => prev + 1)}
-                      disabled={
-                        currentPage >= chaptersData.getChapters.totalPages - 1
-                      }
-                      variant="outline"
-                      size="sm"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="serviceTax"
+              name="serviceTax"
+              checked={formData.serviceTax}
+              onChange={handleInputChange}
+              className="w-4 h-4"
+            />
+            <Label htmlFor="serviceTax">Service Tax</Label>
           </div>
-          <div className="flex justify-end">
-            <Button type="button" onClick={() => setIsChapterDialogOpen(false)}>
-              Done
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog
-        open={isAgreementDialogOpen}
-        onOpenChange={setIsAgreementDialogOpen}
-      >
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>
-              Select Agreements
-              {!agreementsLoading &&
-                agreementsData?.AgreementList?.totalSize &&
-                ` (${agreementsData.AgreementList.totalSize} total)`}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
-            {agreementsLoading ? (
-              <div className="p-4 text-center">Loading agreements...</div>
-            ) : (
-              <>
-                {agreementsData?.AgreementList?.data.map(
-                  (agreement: { _id: string; name: string }) => (
-                    <div
-                      key={agreement._id}
-                      className="flex items-center space-x-2 py-2 border-b last:border-b-0"
-                    >
-                      <input
-                        type="checkbox"
-                        id={`agreement-${agreement._id}`}
-                        checked={formData.agreements.some(
-                          (a) => a.agreementId === agreement._id
-                        )}
-                        onChange={() => handleAgreementToggle(agreement)}
-                        className="w-4 h-4"
-                      />
-                      <Label
-                        htmlFor={`agreement-${agreement._id}`}
-                        className="flex-grow cursor-pointer"
-                      >
-                        {agreement.name}
-                      </Label>
-                    </div>
-                  )
-                )}
-                {agreementsData?.AgreementList?.totalPages > 1 && (
-                  <div className="flex justify-between items-center mt-4 border-t pt-4">
-                    <Button
-                      type="button"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(0, prev - 1))
-                      }
-                      disabled={currentPage === 0}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Previous
-                    </Button>
-                    <span>
-                      Page {agreementsData.AgreementList.pageNumber + 1} of{" "}
-                      {agreementsData.AgreementList.totalPages}
-                    </span>
-                    <Button
-                      type="button"
-                      onClick={() => setCurrentPage((prev) => prev + 1)}
-                      disabled={
-                        currentPage >=
-                        agreementsData.AgreementList.totalPages - 1
-                      }
-                      variant="outline"
-                      size="sm"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
             <Button
               type="button"
-              onClick={() => setIsAgreementDialogOpen(false)}
+              variant="outline"
+              onClick={() => setOpen(false)}
             >
-              Done
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Creating..." : "Create"}
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
+        </form>
+      </DialogContent>
+    </Dialog>
+
+    <ChapterSelectionDialog
+      open={isChapterDialogOpen}
+      onOpenChange={setIsChapterDialogOpen}
+      chaptersData={chaptersData}
+      chaptersLoading={chaptersLoading}
+      onChapterSelect={handleChapterSelect}
+    />
+
+    <AgreementSelectionDialog
+      open={isAgreementDialogOpen}
+      onOpenChange={setIsAgreementDialogOpen}
+      agreementsData={agreementsData}
+      agreementsLoading={agreementsLoading}
+      formData={formData}
+      onAgreementToggle={handleAgreementToggle}
+      currentPage={currentPage}
+      setCurrentPage={setCurrentPage}
+    />
+  </>
+);
 };
 export default CreateProductModal;

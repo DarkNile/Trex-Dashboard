@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Plus, X } from "lucide-react";
 import { Button } from "@/components/UI/button";
 import {
   Dialog,
@@ -36,6 +36,11 @@ interface ScheduleTax {
   fee: number;
   enhancementFee: number;
 }
+interface FlatScheduleTax {
+  per: number;
+  fee: number;
+  enhancementFee: number;
+}
 
 interface AgreementData {
   _id?: string;
@@ -60,6 +65,8 @@ interface ProductData {
   adVAT: number;
   type: "regural" | "car";
   scheduleTaxes?: ScheduleTax[];
+  productScheduleTaxType: "traditional" | "nontraditional";
+  flatScheduleTax?: FlatScheduleTax;
 }
 
 interface UpdateFormData extends ProductData {
@@ -146,6 +153,12 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
     scheduleTaxes: productData.scheduleTaxes || [],
     noteEn: productData.noteEn || '',
   noteAr: productData.noteAr || '',
+  productScheduleTaxType: productData.productScheduleTaxType || "traditional",
+  flatScheduleTax: {
+    per: productData.flatScheduleTax?.per || 0,
+    fee: productData.flatScheduleTax?.fee || 0,
+    enhancementFee: productData.flatScheduleTax?.enhancementFee || 0,
+  },
   });
   const [changedFields, setChangedFields] = useState<Partial<ProductData>>({});
   const [isChapterDialogOpen, setIsChapterDialogOpen] = useState(false);
@@ -299,7 +312,27 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
       id: productId,
       ...changedFields,
       agreements: formattedAgreements,
-      scheduleTaxes: formData.scheduleTaxes,
+      // scheduleTaxes: formData.scheduleTaxes,
+      ...(formData.productScheduleTaxType === "traditional" 
+        ? { 
+            scheduleTaxes: formData.scheduleTaxes?.map(tax => ({
+              min: Number(tax.min),
+              max: Number(tax.max),
+              fee: Number(tax.fee),
+              enhancementFee: Number(tax.enhancementFee)
+            }))
+          }
+        : {
+            flatScheduleTax: formData.flatScheduleTax 
+              ? {
+                  per: Number(formData.flatScheduleTax.per),
+                  fee: Number(formData.flatScheduleTax.fee),
+                  enhancementFee: Number(formData.flatScheduleTax.enhancementFee)
+                }
+              : undefined
+          }
+      ),
+      productScheduleTaxType: formData.productScheduleTaxType,
     };
 
     updateProduct({
@@ -359,12 +392,52 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
     });
   };
 
+  // const handleInputChange = (
+  //   e: React.ChangeEvent<
+  //     HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+  //   >
+  // ) => {
+  //   const { name, type, checked, value } = e.target as HTMLInputElement;
+  //   const newValue = type === "checkbox" ? checked : value;
+
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     [name]: newValue,
+  //   }));
+
+  //   updateChangedFields(name as keyof ProductData, newValue);
+  // };
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
     const { name, type, checked, value } = e.target as HTMLInputElement;
+
+    // Special handling for productScheduleTaxType
+    if (name === 'productScheduleTaxType') {
+      const newProductScheduleTaxType = checked ? "nontraditional" : "traditional";
+      
+      setFormData((prev) => ({
+        ...prev,
+        productScheduleTaxType: newProductScheduleTaxType,
+        // Reset corresponding fields when switching
+        scheduleTaxes: newProductScheduleTaxType === "traditional" ? [] : prev.scheduleTaxes,
+        flatScheduleTax: newProductScheduleTaxType === "nontraditional" 
+          ? { per: 0, fee: 0, enhancementFee: 0 } 
+          : undefined
+      }));
+
+      updateChangedFields('productScheduleTaxType', newProductScheduleTaxType);
+      updateChangedFields('scheduleTaxes', newProductScheduleTaxType === "traditional" ? [] : undefined);
+      updateChangedFields('flatScheduleTax', newProductScheduleTaxType === "nontraditional" 
+        ? { per: 0, fee: 0, enhancementFee: 0 } 
+        : undefined);
+      
+      return;
+    }
+
     const newValue = type === "checkbox" ? checked : value;
 
     setFormData((prev) => ({
@@ -644,7 +717,191 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
               </div>
             </div>
 
-            <div className="space-y-2">
+            {/* New Toggle for Product Schedule Tax Type */}
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="productScheduleTaxType"
+                          name="productScheduleTaxType"
+                          checked={formData.productScheduleTaxType === "nontraditional"}
+                          onChange={handleInputChange}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="productScheduleTaxType">
+                          Use Nontraditional Schedule Tax
+                        </Label>
+                      </div>
+                      {/* Conditional Rendering of Schedule Taxes */}
+{formData.productScheduleTaxType === "traditional" ? (
+  <div className="space-y-2">
+    <div className="flex justify-between items-center">
+      <Label>Schedule Taxes</Label>
+      <Button 
+        type="button" 
+        onClick={handleAddScheduleTax} 
+        variant="outline" 
+        size="sm"
+      >
+        <Plus className="w-4 h-4 mr-1" /> Add
+      </Button>
+    </div>
+    {formData.scheduleTaxes && formData.scheduleTaxes.length > 0 && (
+      <div className="mt-4 space-y-4">
+        {formData.scheduleTaxes.map((tax, index) => (
+          <div
+            key={index}
+            className="space-y-3 p-4 border rounded-md relative"
+          >
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="absolute top-2 right-2 h-6 w-6 p-0"
+              onClick={() => handleRemoveScheduleTax(index)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor={`min-${index}`}>Min Value</Label>
+                <Input
+                  id={`min-${index}`}
+                  type="number"
+                  value={tax.min}
+                  onChange={(e) => handleScheduleTaxChange(index, 'min', Number(e.target.value))}
+                  step="0.1"
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`max-${index}`}>Max Value</Label>
+                <Input
+                  id={`max-${index}`}
+                  type="number"
+                  value={tax.max}
+                  onChange={(e) => handleScheduleTaxChange(index, 'max', Number(e.target.value))}
+                  step="0.1"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <div className="space-y-1">
+                <Label htmlFor={`fee-${index}`}>Fee</Label>
+                <Input
+                  id={`fee-${index}`}
+                  type="number"
+                  value={tax.fee}
+                  onChange={(e) => handleScheduleTaxChange(index, 'fee', Number(e.target.value))}
+                  step="0.1"
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`enhancementFee-${index}`}>Enhancement Fee</Label>
+                <Input
+                  id={`enhancementFee-${index}`}
+                  type="number"
+                  value={tax.enhancementFee}
+                  onChange={(e) => handleScheduleTaxChange(index, 'enhancementFee', Number(e.target.value))}
+                  step="0.1"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+) : (
+  <div className="space-y-2">
+    <Label>Flat Schedule Tax</Label>
+    <div className="grid grid-cols-3 gap-3">
+      <div className="space-y-1">
+        <Label htmlFor="flatScheduleTax-per">Per Value</Label>
+        <Input
+          id="flatScheduleTax-per"
+          type="number"
+          name="flatScheduleTax.per"
+          value={formData.flatScheduleTax?.per || 0}
+          onChange={(e) => {
+            const newValue = Number(e.target.value);
+            setFormData(prev => ({
+              ...prev,
+              flatScheduleTax: {
+                ...prev.flatScheduleTax,
+                per: newValue
+              } as FlatScheduleTax
+            }));
+            updateChangedFields('flatScheduleTax', {
+              ...formData.flatScheduleTax,
+              per: newValue
+            });
+          }}
+          step="0.1"
+          required
+        />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="flatScheduleTax-fee">Fee</Label>
+        <Input
+          id="flatScheduleTax-fee"
+          type="number"
+          name="flatScheduleTax.fee"
+          value={formData.flatScheduleTax?.fee || 0}
+          onChange={(e) => {
+            const newValue = Number(e.target.value);
+            setFormData(prev => ({
+              ...prev,
+              flatScheduleTax: {
+                ...prev.flatScheduleTax,
+                fee: newValue
+              } as FlatScheduleTax
+            }));
+            updateChangedFields('flatScheduleTax', {
+              ...formData.flatScheduleTax,
+              fee: newValue
+            });
+          }}
+          step="0.1"
+          required
+        />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="flatScheduleTax-enhancementFee">Enhancement Fee</Label>
+        <Input
+          id="flatScheduleTax-enhancementFee"
+          type="number"
+          name="flatScheduleTax.enhancementFee"
+          value={formData.flatScheduleTax?.enhancementFee || 0}
+          onChange={(e) => {
+            const newValue = Number(e.target.value);
+            setFormData(prev => ({
+              ...prev,
+              flatScheduleTax: {
+                ...prev.flatScheduleTax,
+                enhancementFee: newValue
+              } as FlatScheduleTax
+            }));
+            updateChangedFields('flatScheduleTax', {
+              ...formData.flatScheduleTax,
+              enhancementFee: newValue
+            });
+          }}
+          step="0.1"
+          required
+        />
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+            {/* <div className="space-y-2">
               <Label>Schedule Taxes</Label>
               <div className="space-y-4">
                 {formData.scheduleTaxes?.map((tax, index) => (
@@ -743,7 +1000,7 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
                   Add Schedule Tax
                 </Button>
               </div>
-            </div>
+            </div> */}
 
             <div className="flex items-center space-x-2">
               <input
